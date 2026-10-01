@@ -3,6 +3,7 @@ import { api } from '@/shared/api';
 import { useAuthStore } from '../store/auth.store';
 import { LoginInput, SignupInput } from '@know-your-route/contracts';
 import { useRouter } from 'expo-router';
+import { routeAfterAuth } from '../utils/route-after-auth';
 
 export const useLogin = () => {
   const router = useRouter();
@@ -12,11 +13,7 @@ export const useLogin = () => {
     mutationFn: (input: LoginInput) => api.auth.login({ body: input }),
     onSuccess: (data) => {
       setAuth(data.user, data.token);
-      if (data.user.isOnboarded) {
-        router.replace('/(tabs)/home');
-      } else {
-        router.replace('/(onboarding)/welcome');
-      }
+      routeAfterAuth(router, data.user.isOnboarded);
     },
   });
 };

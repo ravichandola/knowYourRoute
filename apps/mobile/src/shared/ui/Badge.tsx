@@ -33,47 +33,44 @@ const styles = StyleSheet.create({
   },
   size_sm: {
     paddingVertical: 2,
-    paddingHorizontal: theme.spacing.xs + 2,
+    paddingHorizontal: theme.spacing.sm,
   },
   size_md: {
     paddingVertical: 4,
     paddingHorizontal: theme.spacing.sm + 2,
   },
   primary: {
-    backgroundColor: 'rgba(37, 99, 235, 0.2)',
+    backgroundColor: theme.colors.primaryLight,
   },
   success: {
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    backgroundColor: theme.colors.primaryLight,
   },
   warning: {
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
   },
   danger: {
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
   },
   neutral: {
     backgroundColor: theme.colors.surfaceLight,
   },
   info: {
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    backgroundColor: 'rgba(37, 99, 235, 0.1)',
   },
   text: {
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    fontWeight: '600',
   },
   textSize_sm: {
     fontSize: 10,
-    letterSpacing: 0.5,
   },
   textSize_md: {
     fontSize: 11,
-    letterSpacing: 0.5,
   },
   text_primary: {
-    color: theme.colors.brand[400],
+    color: theme.colors.primary,
   },
   text_success: {
-    color: theme.colors.emerald[500],
+    color: theme.colors.accent,
   },
   text_warning: {
     color: theme.colors.warning,
@@ -85,6 +82,6 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   text_info: {
-    color: theme.colors.info,
+    color: theme.colors.link,
   },
 });

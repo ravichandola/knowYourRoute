@@ -6,9 +6,25 @@ import { Platform } from 'react-native';
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
 
+function getWebStorage(): Storage | null {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') {
+    return null;
+  }
+  return window.localStorage;
+}
+
 async function persistToken(token: string | null): Promise<void> {
   try {
-    if (Platform.OS === 'web') return;
+    const webStorage = getWebStorage();
+    if (webStorage) {
+      if (token) {
+        webStorage.setItem(TOKEN_KEY, token);
+      } else {
+        webStorage.removeItem(TOKEN_KEY);
+      }
+      return;
+    }
+
     if (token) {
       await SecureStore.setItemAsync(TOKEN_KEY, token);
     } else {
@@ -21,7 +37,16 @@ async function persistToken(token: string | null): Promise<void> {
 
 async function persistUser(user: User | null): Promise<void> {
   try {
-    if (Platform.OS === 'web') return;
+    const webStorage = getWebStorage();
+    if (webStorage) {
+      if (user) {
+        webStorage.setItem(USER_KEY, JSON.stringify(user));
+      } else {
+        webStorage.removeItem(USER_KEY);
+      }
+      return;
+    }
+
     if (user) {
       await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
     } else {
@@ -72,11 +97,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
 
   hydrate: async () => {
-    if (Platform.OS === 'web') {
-      set({ isLoading: false });
-      return;
-    }
     try {
+      const webStorage = getWebStorage();
+      if (webStorage) {
+        const token = webStorage.getItem(TOKEN_KEY);
+        const userJson = webStorage.getItem(USER_KEY);
+        if (token && userJson) {
+          const user = JSON.parse(userJson) as User;
+          set({ token, user, isAuthenticated: true, isLoading: false });
+          return;
+        }
+        set({ isLoading: false });
+        return;
+      }
+
       const token = await SecureStore.getItemAsync(TOKEN_KEY);
       const userJson = await SecureStore.getItemAsync(USER_KEY);
       if (token && userJson) {

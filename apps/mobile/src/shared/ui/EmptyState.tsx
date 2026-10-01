@@ -34,6 +34,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: theme.colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: theme.spacing.md,
   },
   title: {
@@ -48,6 +54,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: theme.spacing.xs,
     marginBottom: theme.spacing.lg,
+    lineHeight: 20,
   },
   actionContainer: {
     marginTop: theme.spacing.sm,
