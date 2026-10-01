@@ -6,6 +6,16 @@ import { scrubUrlCredentials } from '../logging/redaction';
 const STARTUP_RETRIES = 3;
 const WARN_INTERVAL_MS = 10_000;
 
+/** Atomic INCR + PEXPIRE so two API instances cannot lose a hit between the two commands. */
+const INCR_WITH_TTL = `
+local n = redis.call('INCR', KEYS[1])
+if n == 1 then
+  redis.call('PEXPIRE', KEYS[1], ARGV[1])
+end
+local pttl = redis.call('PTTL', KEYS[1])
+return { n, pttl }
+`;
+
 /**
  * Redis-backed cache. Redis only holds transient data; losing it must never lose business data.
  *
@@ -22,6 +32,7 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   private starting = true;
   private lastWarnAt = 0;
   private readonly memoryStore = new Map<string, { value: string; expiresAt?: number }>();
+  private readonly memoryCounters = new Map<string, { hits: number; expiresAt: number }>();
 
   constructor(private readonly configService: ConfigService) {}
 
@@ -125,6 +136,29 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  /**
+   * Atomically increments `key` and (on first hit) sets a millisecond TTL.
+   * Used by rate limiting so every API instance shares one counter.
+   * Redis outages after startup fall back to this process's in-memory counter.
+   */
+  async increment(key: string, ttlMs: number): Promise<{ hits: number; timeToExpireMs: number }> {
+    if (this.client) {
+      try {
+        const result = (await this.client.eval(INCR_WITH_TTL, 1, key, String(ttlMs))) as [number, number];
+        const hits = Number(result[0]);
+        let pttl = Number(result[1]);
+        if (pttl < 0) {
+          await this.client.pexpire(key, ttlMs);
+          pttl = ttlMs;
+        }
+        return { hits, timeToExpireMs: pttl };
+      } catch (error) {
+        this.warnThrottled(`Rate-limit increment failed: ${(error as Error).message}`);
+      }
+    }
+    return this.incrementInMemory(key, ttlMs);
+  }
+
   async del(key: string): Promise<void> {
     if (!this.client) {
       this.memoryStore.delete(key);
@@ -144,6 +178,17 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
       this.logger.log('Closing Redis connection');
       await this.client.quit().catch(() => this.client?.disconnect());
     }
+  }
+
+  private incrementInMemory(key: string, ttlMs: number): { hits: number; timeToExpireMs: number } {
+    const now = Date.now();
+    let entry = this.memoryCounters.get(key);
+    if (!entry || entry.expiresAt <= now) {
+      entry = { hits: 0, expiresAt: now + ttlMs };
+      this.memoryCounters.set(key, entry);
+    }
+    entry.hits += 1;
+    return { hits: entry.hits, timeToExpireMs: Math.max(0, entry.expiresAt - now) };
   }
 
   private warnThrottled(message: string): void {

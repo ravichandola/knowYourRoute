@@ -240,7 +240,7 @@ The foundation layer established before feature development:
 | Logging | pino via nestjs-pino, structured JSON, request-id correlation, redaction | `platform/logging/` |
 | Errors | 9 error classes, standard envelope `{ success: false, error: { code, message, requestId } }` | `platform/errors/` |
 | Auth | JWT with issuer/audience, global guard, `@CurrentUser`, demo-login non-prod only | `modules/identity/` |
-| HTTP | helmet, throttler, CORS allow-list, body limits, Swagger gating, graceful shutdown | `main.ts` |
+| HTTP | helmet, Redis-backed throttler, CORS allow-list, body limits, Swagger gating, graceful shutdown | `main.ts`, `platform/cache/` |
 | Health | `GET /health` (liveness), `GET /health/ready` (Postgres + Redis) | `platform/health/` |
 | Storage | S3/MinIO provider, StorageService with key policy, type/size validation, signed URLs | `platform/storage/` |
 | Mobile | api-client with request-id, error envelope parsing, GET retry, token persistence | `packages/api-client/`, `apps/mobile/` |

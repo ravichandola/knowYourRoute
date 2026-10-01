@@ -136,7 +136,7 @@ pnpm arch:docs    # regenerate docs/architecture/generated after structural chan
 
 `pnpm lint` runs ESLint (no `console` and no `process.env` in API code outside the validated config), a check that mobile code makes no raw `fetch` calls or hardcoded URLs, and each workspace's type check. Pre-existing unused-variable findings in feature code are warnings, not errors.
 
-Rate limiting uses the in-memory throttler store, so limits are per API instance. Move it to a Redis-backed store before running more than one instance.
+Rate limits are stored in Redis (`throttle:` keys) so every API instance shares one counter. When Redis is not configured (development/test), the limit is in-memory for that process only.
 
 CI runs all of the above (plus database migrations and a Prisma drift check) on every push and pull request against `main` and `develop`. CI uses PostgreSQL 16 and Redis 7 service containers.
 

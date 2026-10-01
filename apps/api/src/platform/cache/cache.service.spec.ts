@@ -56,4 +56,17 @@ describe('CacheService', () => {
     expect(cache.mode).toBe('memory');
     expect(await cache.ping()).toBe(false);
   }, 20000);
+
+  it('increments an in-memory counter and resets after TTL', async () => {
+    const cache = new CacheService(config({ NODE_ENV: 'test' }));
+    await cache.onModuleInit();
+    jest.useFakeTimers().setSystemTime(new Date('2026-01-01T00:00:00Z'));
+
+    await expect(cache.increment('k', 1000)).resolves.toEqual({ hits: 1, timeToExpireMs: 1000 });
+    await expect(cache.increment('k', 1000)).resolves.toEqual({ hits: 2, timeToExpireMs: 1000 });
+
+    jest.setSystemTime(new Date('2026-01-01T00:00:02Z'));
+    await expect(cache.increment('k', 1000)).resolves.toEqual({ hits: 1, timeToExpireMs: 1000 });
+    jest.useRealTimers();
+  });
 });
