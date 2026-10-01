@@ -1,14 +1,23 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { User, TripPreference } from '@know-your-route/types';
 import { PrismaService } from '../common/prisma.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class UsersService {
   private inMemoryPreferences = new Map<string, TripPreference>();
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private authService: AuthService
+  ) {}
 
   async getProfile(userId: string): Promise<User> {
+    const fromAuth = await this.authService.getUserById(userId);
+    if (fromAuth) {
+      return fromAuth;
+    }
+
     try {
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
       if (user) {
@@ -23,45 +32,14 @@ export class UsersService {
         };
       }
     } catch {
-      // Fallback
+      // DB unavailable
     }
 
-    return {
-      id: userId,
-      email: 'demo@knowyourroute.com',
-      name: 'Alex Rivera',
-      phone: '+91 98765 43210',
-      isOnboarded: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    throw new NotFoundException('User not found');
   }
 
   async markOnboarded(userId: string): Promise<User> {
-    try {
-      const updated = await this.prisma.user.update({
-        where: { id: userId },
-        data: { isOnboarded: true },
-      });
-      return {
-        id: updated.id,
-        email: updated.email,
-        name: updated.name,
-        phone: updated.phone || undefined,
-        isOnboarded: updated.isOnboarded,
-        createdAt: updated.createdAt.toISOString(),
-        updatedAt: updated.updatedAt.toISOString(),
-      };
-    } catch {
-      return {
-        id: userId,
-        email: 'demo@knowyourroute.com',
-        name: 'Alex Rivera',
-        isOnboarded: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-    }
+    return this.authService.markOnboarded(userId);
   }
 
   async getPreferences(userId: string): Promise<TripPreference> {

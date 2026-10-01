@@ -8,7 +8,7 @@ export const useUserTrips = () => {
 
   return useQuery({
     queryKey: ['trips', user?.id],
-    queryFn: () => tripApi.listTrips(user?.id),
+    queryFn: () => tripApi.listTrips(),
   });
 };
 
@@ -30,10 +30,9 @@ export const useTripExplanation = (tripId: string) => {
 
 export const useCreateTrip = () => {
   const queryClient = useQueryClient();
-  const user = useAuthStore((s) => s.user);
 
   return useMutation({
-    mutationFn: (input: CreateTripInput) => tripApi.createTrip(input, user?.id),
+    mutationFn: (input: CreateTripInput) => tripApi.createTrip(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trips'] });
     },

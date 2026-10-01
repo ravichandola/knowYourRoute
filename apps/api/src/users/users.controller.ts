@@ -1,31 +1,33 @@
-import { Controller, Get, Patch, Body, Param } from '@nestjs/common';
+import { Body, Controller, Get, Patch } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User, TripPreference } from '@know-your-route/types';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Get(':id')
-  async getProfile(@Param('id') id: string): Promise<User> {
-    return this.usersService.getProfile(id);
+  @Get('me')
+  async getMe(@CurrentUser() user: User): Promise<User> {
+    const profile = await this.usersService.getProfile(user.id);
+    return profile;
   }
 
-  @Patch(':id/onboarded')
-  async markOnboarded(@Param('id') id: string): Promise<User> {
-    return this.usersService.markOnboarded(id);
+  @Patch('me/onboarded')
+  async markOnboarded(@CurrentUser() user: User): Promise<User> {
+    return this.usersService.markOnboarded(user.id);
   }
 
-  @Get(':id/preferences')
-  async getPreferences(@Param('id') id: string): Promise<TripPreference> {
-    return this.usersService.getPreferences(id);
+  @Get('me/preferences')
+  async getPreferences(@CurrentUser() user: User): Promise<TripPreference> {
+    return this.usersService.getPreferences(user.id);
   }
 
-  @Patch(':id/preferences')
+  @Patch('me/preferences')
   async updatePreferences(
-    @Param('id') id: string,
+    @CurrentUser() user: User,
     @Body() prefs: TripPreference
   ): Promise<TripPreference> {
-    return this.usersService.updatePreferences(id, prefs);
+    return this.usersService.updatePreferences(user.id, prefs);
   }
 }

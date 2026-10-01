@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import {
   Trip,
   TripContext,
@@ -21,7 +21,7 @@ export class TripsService {
   ) {}
 
   async createTrip(userId: string, input: CreateTripInput): Promise<Trip> {
-    const vehicle = await this.vehiclesService.getVehicle(input.vehicleId);
+    const vehicle = await this.vehiclesService.getVehicle(input.vehicleId, userId);
 
     const tripId = `trip_${Date.now()}`;
     const cost: TripCostBreakdown = {
@@ -52,22 +52,23 @@ export class TripsService {
     return trip;
   }
 
-  async getTrip(tripId: string): Promise<Trip> {
+  async getTrip(tripId: string, userId?: string): Promise<Trip> {
     const trip = this.fallbackTrips.get(tripId);
     if (!trip) {
       throw new NotFoundException(`Trip with ID ${tripId} not found`);
+    }
+    if (userId && trip.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this trip');
     }
     return trip;
   }
 
   async listUserTrips(userId: string): Promise<Trip[]> {
-    return Array.from(this.fallbackTrips.values()).filter(
-      (t) => t.userId === userId || userId === 'usr_demo_101'
-    );
+    return Array.from(this.fallbackTrips.values()).filter((t) => t.userId === userId);
   }
 
-  async getTripExplanation(tripId: string): Promise<TripExplanation> {
-    const trip = await this.getTrip(tripId);
+  async getTripExplanation(tripId: string, userId?: string): Promise<TripExplanation> {
+    const trip = await this.getTrip(tripId, userId);
     const vehicle = trip.vehicle || (await this.vehiclesService.getVehicle(trip.vehicleId));
 
     // Create contextual synthesis for AI reasoning

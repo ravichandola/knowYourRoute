@@ -3,15 +3,15 @@ import { VehicleProfile } from '@know-your-route/types';
 import { VehicleProfileInput, VehicleSnapshotInput } from '@know-your-route/validation';
 
 export const vehicleApi = {
-  listVehicles: async (userId?: string): Promise<VehicleProfile[]> => {
-    return apiClient.get<VehicleProfile[]>('/vehicles', { userId });
+  listVehicles: async (): Promise<VehicleProfile[]> => {
+    return apiClient.get<VehicleProfile[]>('/vehicles');
   },
 
   getVehicle: async (id: string): Promise<VehicleProfile> => {
     return apiClient.get<VehicleProfile>(`/vehicles/${id}`);
   },
 
-  registerVehicle: async (data: VehicleProfileInput, userId?: string): Promise<VehicleProfile> => {
+  registerVehicle: async (data: VehicleProfileInput): Promise<VehicleProfile> => {
     return apiClient.post<VehicleProfile>('/vehicles', data);
   },
 

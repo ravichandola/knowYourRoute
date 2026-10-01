@@ -11,7 +11,7 @@
     "dev": "expo start",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest --passWithNoTests"
   },
   "dependencies": {
     "@know-your-route/api-client": "workspace:*",

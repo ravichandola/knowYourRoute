@@ -8,6 +8,7 @@ import { SafetyService } from '../safety/safety.service';
 import { FastagService } from '../fastag/fastag.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { RedisService } from '../common/services/redis.service';
+import { DEMO_USER_ID } from '../auth/auth.constants';
 
 describe('RoutesService (Route Intelligence Engine)', () => {
   let routesService: RoutesService;
@@ -19,11 +20,19 @@ describe('RoutesService (Route Intelligence Engine)', () => {
     const vehicleProvider = new MockVehicleAdapter();
     const energyService = new EnergyService();
     const safetyService = new SafetyService();
-    const fastagService = new FastagService(fastagProvider);
-    const mockPrisma = {} as any;
+    const mockPrisma = {
+      vehicle: { findUnique: jest.fn().mockRejectedValue(new Error('db offline')) },
+    } as any;
     const vehiclesService = new VehiclesService(vehicleProvider, mockPrisma);
     const mockConfig = { get: jest.fn().mockReturnValue(undefined) } as any;
     const redisService = new RedisService(mockConfig);
+    const fastagPrisma = {
+      fastagConnection: {
+        findFirst: jest.fn().mockRejectedValue(new Error('db offline')),
+        findMany: jest.fn().mockRejectedValue(new Error('db offline')),
+      },
+    } as any;
+    const fastagService = new FastagService(fastagProvider, fastagPrisma);
 
     routesService = new RoutesService(
       mapsProvider,
@@ -37,10 +46,14 @@ describe('RoutesService (Route Intelligence Engine)', () => {
   });
 
   it('should plan and enrich candidate routes with safety, energy, and toll intelligence', async () => {
-    const response = await routesService.planRoute({
-      origin: { name: 'Mumbai', location: { latitude: 18.9696, longitude: 72.8193 } },
-      destination: { name: 'Pune', location: { latitude: 18.5314, longitude: 73.8446 } },
-    });
+    const response = await routesService.planRoute(
+      {
+        origin: { name: 'Mumbai', location: { latitude: 18.9696, longitude: 72.8193 } },
+        destination: { name: 'Pune', location: { latitude: 18.5314, longitude: 73.8446 } },
+        vehicleId: 'veh_demo_creta',
+      },
+      DEMO_USER_ID
+    );
 
     expect(response).toBeDefined();
     expect(response.routes.length).toBeGreaterThanOrEqual(2);

@@ -2,9 +2,10 @@
   "name": "@know-your-route/config",
   "version": "0.1.0",
   "private": true,
-  "main": "index.js",
+  "main": "constants.js",
   "files": [
     "typescript",
-    "eslint"
+    "eslint",
+    "constants.js"
   ]
 }

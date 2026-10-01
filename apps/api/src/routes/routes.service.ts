@@ -27,7 +27,7 @@ export class RoutesService {
     private redisService: RedisService
   ) {}
 
-  async planRoute(request: RoutePlanRequest): Promise<RoutePlanResponse> {
+  async planRoute(request: RoutePlanRequest, userId?: string): Promise<RoutePlanResponse> {
     const cacheKey = `route_plan:${request.origin.location.latitude.toFixed(3)},${request.origin.location.longitude.toFixed(3)}_${request.destination.location.latitude.toFixed(3)},${request.destination.location.longitude.toFixed(3)}_${request.vehicleId || 'default'}`;
 
     // 1. Check Redis Cache
@@ -48,7 +48,7 @@ export class RoutesService {
 
     if (request.vehicleId) {
       try {
-        vehicle = await this.vehiclesService.getVehicle(request.vehicleId);
+        vehicle = await this.vehiclesService.getVehicle(request.vehicleId, userId);
       } catch {
         // Use default vehicle profile if ID not found
       }
@@ -79,11 +79,10 @@ export class RoutesService {
           request.destination.location,
         ]);
 
-        // FASTag Intelligence
-        const fastag = await this.fastagService.verifyTollSufficiency(
-          'FT-88392019-ICICI',
-          route.toll.totalCost
-        );
+        const tagNumber = await this.fastagService.resolveTagNumber(userId, request.vehicleId);
+        const fastag = tagNumber
+          ? await this.fastagService.verifyTollSufficiency(tagNumber, route.toll.totalCost)
+          : undefined;
 
         return {
           ...route,

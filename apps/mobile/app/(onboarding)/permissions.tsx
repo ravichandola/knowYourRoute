@@ -15,8 +15,8 @@ export default function PermissionsScreen() {
   const handleComplete = async () => {
     setLoading(true);
     try {
-      if (user?.id) {
-        await userApi.markOnboarded(user.id);
+      if (user) {
+        await userApi.markOnboarded();
       }
       updateUser({ isOnboarded: true });
     } catch {

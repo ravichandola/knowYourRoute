@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ProvidersModule } from './providers/providers.module';
 import { AuthModule } from './auth/auth.module';
@@ -10,6 +11,7 @@ import { EnergyModule } from './energy/energy.module';
 import { SafetyModule } from './safety/safety.module';
 import { FastagModule } from './fastag/fastag.module';
 import { AIModule } from './ai/ai.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -27,6 +29,12 @@ import { AIModule } from './ai/ai.module';
     FastagModule,
     RoutesModule,
     TripsModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule {}

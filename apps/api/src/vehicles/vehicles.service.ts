@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { VehicleProfile, VehicleSnapshot } from '@know-your-route/types';
 import { VehicleProfileInput, VehicleSnapshotInput } from '@know-your-route/validation';
 import { VEHICLE_PROVIDER, IVehicleProvider } from '../providers/vehicle/vehicle.interface';
@@ -47,48 +47,36 @@ export class VehiclesService {
         where: { userId },
       });
       if (dbVehicles && dbVehicles.length > 0) {
-        return dbVehicles.map((v) => ({
-          id: v.id,
-          userId: v.userId,
-          make: v.make,
-          model: v.model,
-          variant: v.variant || undefined,
-          year: v.year || undefined,
-          registrationNumber: v.registrationNumber,
-          fuelType: v.fuelType,
-          tankCapacity: v.tankCapacity || undefined,
-          currentState: {
-            odometer: v.odometer || undefined,
-            fuelLevel: v.fuelLevel || undefined,
-            batteryLevel: v.batteryLevel || undefined,
-            rangeKm: v.rangeKm || undefined,
-          },
-          efficiency: {
-            estimated: v.estimatedEfficiency || undefined,
-            learned: v.learnedEfficiency || undefined,
-            unit: v.fuelType === 'EV' ? 'km/kWh' : 'km/l',
-          },
-          dataSource: v.dataSource,
-          isPrimary: v.isPrimary,
-          lastUpdatedAt: v.updatedAt.toISOString(),
-        }));
+        return dbVehicles.map((v) => this.mapDbVehicle(v));
       }
     } catch {
       // Fallback
     }
 
-    const userVehicles = Array.from(this.fallbackVehicles.values()).filter(
-      (v) => v.userId === userId || userId === 'usr_demo_101'
-    );
-    return userVehicles.length > 0
-      ? userVehicles
-      : Array.from(this.fallbackVehicles.values());
+    return Array.from(this.fallbackVehicles.values()).filter((v) => v.userId === userId);
   }
 
-  async getVehicle(id: string): Promise<VehicleProfile> {
+  async getVehicle(id: string, userId?: string): Promise<VehicleProfile> {
+    try {
+      const dbVehicle = await this.prisma.vehicle.findUnique({ where: { id } });
+      if (dbVehicle) {
+        if (userId && dbVehicle.userId !== userId) {
+          throw new ForbiddenException('You do not have access to this vehicle');
+        }
+        return this.mapDbVehicle(dbVehicle);
+      }
+    } catch (err) {
+      if (err instanceof ForbiddenException) {
+        throw err;
+      }
+    }
+
     const vehicle = this.fallbackVehicles.get(id);
     if (!vehicle) {
       throw new NotFoundException(`Vehicle with ID ${id} not found`);
+    }
+    if (userId && vehicle.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this vehicle');
     }
     return vehicle;
   }
@@ -150,8 +138,12 @@ export class VehiclesService {
     return newVehicle;
   }
 
-  async processSnapshot(vehicleId: string, input: VehicleSnapshotInput): Promise<VehicleProfile> {
-    const vehicle = await this.getVehicle(vehicleId);
+  async processSnapshot(
+    vehicleId: string,
+    input: VehicleSnapshotInput,
+    userId?: string
+  ): Promise<VehicleProfile> {
+    const vehicle = await this.getVehicle(vehicleId, userId);
 
     // Call OCR / Vision provider adapter
     const detected = await this.vehicleProvider.processDashboardImage(
@@ -176,8 +168,8 @@ export class VehiclesService {
     return updatedVehicle;
   }
 
-  async syncTelemetry(vehicleId: string): Promise<VehicleProfile> {
-    const vehicle = await this.getVehicle(vehicleId);
+  async syncTelemetry(vehicleId: string, userId?: string): Promise<VehicleProfile> {
+    const vehicle = await this.getVehicle(vehicleId, userId);
     const telemetry = await this.vehicleProvider.fetchConnectedVehicleTelemetry(vehicleId);
 
     const updated: VehicleProfile = {
@@ -196,5 +188,52 @@ export class VehiclesService {
 
     this.fallbackVehicles.set(vehicleId, updated);
     return updated;
+  }
+
+  private mapDbVehicle(v: {
+    id: string;
+    userId: string;
+    make: string;
+    model: string;
+    variant: string | null;
+    year: number | null;
+    registrationNumber: string;
+    fuelType: VehicleProfile['fuelType'];
+    tankCapacity: number | null;
+    odometer: number | null;
+    fuelLevel: number | null;
+    batteryLevel: number | null;
+    rangeKm: number | null;
+    estimatedEfficiency: number | null;
+    learnedEfficiency: number | null;
+    dataSource: VehicleProfile['dataSource'];
+    isPrimary: boolean;
+    updatedAt: Date;
+  }): VehicleProfile {
+    return {
+      id: v.id,
+      userId: v.userId,
+      make: v.make,
+      model: v.model,
+      variant: v.variant || undefined,
+      year: v.year || undefined,
+      registrationNumber: v.registrationNumber,
+      fuelType: v.fuelType,
+      tankCapacity: v.tankCapacity || undefined,
+      currentState: {
+        odometer: v.odometer || undefined,
+        fuelLevel: v.fuelLevel || undefined,
+        batteryLevel: v.batteryLevel || undefined,
+        rangeKm: v.rangeKm || undefined,
+      },
+      efficiency: {
+        estimated: v.estimatedEfficiency || undefined,
+        learned: v.learnedEfficiency || undefined,
+        unit: v.fuelType === 'EV' ? 'km/kWh' : 'km/l',
+      },
+      dataSource: v.dataSource,
+      isPrimary: v.isPrimary,
+      lastUpdatedAt: v.updatedAt.toISOString(),
+    };
   }
 }

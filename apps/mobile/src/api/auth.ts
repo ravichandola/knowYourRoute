@@ -11,7 +11,11 @@ export const authApi = {
     return apiClient.post<AuthResponse>('/auth/signup', input);
   },
 
+  demoLogin: async (): Promise<AuthResponse> => {
+    return apiClient.post<AuthResponse>('/auth/demo-login');
+  },
+
   getMe: async (): Promise<User> => {
-    return apiClient.get<User>('/auth/me');
+    return apiClient.get<User>('/users/me');
   },
 };

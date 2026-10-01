@@ -2,19 +2,19 @@ import { apiClient } from './client';
 import { User, TripPreference } from '@know-your-route/types';
 
 export const userApi = {
-  getProfile: async (id: string): Promise<User> => {
-    return apiClient.get<User>(`/users/${id}`);
+  getProfile: async (): Promise<User> => {
+    return apiClient.get<User>('/users/me');
   },
 
-  markOnboarded: async (id: string): Promise<User> => {
-    return apiClient.patch<User>(`/users/${id}/onboarded`);
+  markOnboarded: async (): Promise<User> => {
+    return apiClient.patch<User>('/users/me/onboarded');
   },
 
-  getPreferences: async (id: string): Promise<TripPreference> => {
-    return apiClient.get<TripPreference>(`/users/${id}/preferences`);
+  getPreferences: async (): Promise<TripPreference> => {
+    return apiClient.get<TripPreference>('/users/me/preferences');
   },
 
-  updatePreferences: async (id: string, preferences: TripPreference): Promise<TripPreference> => {
-    return apiClient.patch<TripPreference>(`/users/${id}/preferences`, preferences);
+  updatePreferences: async (preferences: TripPreference): Promise<TripPreference> => {
+    return apiClient.patch<TripPreference>('/users/me/preferences', preferences);
   },
 };

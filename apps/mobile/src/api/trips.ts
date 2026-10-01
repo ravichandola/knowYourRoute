@@ -3,15 +3,15 @@ import { Trip, TripExplanation } from '@know-your-route/types';
 import { CreateTripInput } from '@know-your-route/validation';
 
 export const tripApi = {
-  listTrips: async (userId?: string): Promise<Trip[]> => {
-    return apiClient.get<Trip[]>('/trips', { userId });
+  listTrips: async (): Promise<Trip[]> => {
+    return apiClient.get<Trip[]>('/trips');
   },
 
   getTrip: async (id: string): Promise<Trip> => {
     return apiClient.get<Trip>(`/trips/${id}`);
   },
 
-  createTrip: async (data: CreateTripInput, userId?: string): Promise<Trip> => {
+  createTrip: async (data: CreateTripInput): Promise<Trip> => {
     return apiClient.post<Trip>('/trips', data);
   },
 

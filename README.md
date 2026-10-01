@@ -5,6 +5,18 @@
 
 ---
 
+### 📚 Official Documentation
+For complete step-by-step guides, architecture diagrams, and beginner tutorials, explore our [**Comprehensive Documentation Hub**](./documentation/README.md):
+- 🚀 [**01 — Getting Started & Beginner's Setup**](./documentation/01-GETTING-STARTED.md)
+- 🏛️ [**02 — System Architecture & Data Flow**](./documentation/02-SYSTEM-ARCHITECTURE.md)
+- ⚙️ [**03 — Backend API Layer (NestJS)**](./documentation/03-BACKEND-API-LAYER.md)
+- 📱 [**04 — Mobile Application Layer (Expo / React Native)**](./documentation/04-MOBILE-APP-LAYER.md)
+- 📦 [**05 — Shared Packages Layer**](./documentation/05-SHARED-PACKAGES-LAYER.md)
+- 🧠 [**06 — Providers & Intelligence Engines**](./documentation/06-PROVIDERS-AND-INTELLIGENCE.md)
+- 🚢 [**07 — Development & Deployment Guide**](./documentation/07-DEVELOPMENT-AND-DEPLOYMENT.md)
+
+---
+
 ## 🏗️ Architecture Overview
 
 The system is architected as a **client application over a backend intelligence platform**. The mobile application **never** talks directly to external third-party APIs (Google Maps, OpenWeather, OEM APIs).

@@ -11,7 +11,7 @@ export const useVehicles = () => {
   return useQuery({
     queryKey: ['vehicles', user?.id],
     queryFn: async () => {
-      const list = await vehicleApi.listVehicles(user?.id);
+      const list = await vehicleApi.listVehicles();
       if (list.length > 0) {
         setSelectedVehicle(list[0]);
       }
@@ -22,12 +22,10 @@ export const useVehicles = () => {
 
 export const useRegisterVehicle = () => {
   const queryClient = useQueryClient();
-  const user = useAuthStore((s) => s.user);
   const setSelectedVehicle = useVehicleStore((s) => s.setSelectedVehicle);
 
   return useMutation({
-    mutationFn: (input: VehicleProfileInput) =>
-      vehicleApi.registerVehicle(input, user?.id),
+    mutationFn: (input: VehicleProfileInput) => vehicleApi.registerVehicle(input),
     onSuccess: (newVehicle) => {
       setSelectedVehicle(newVehicle);
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
