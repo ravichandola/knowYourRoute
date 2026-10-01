@@ -6,15 +6,28 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "development"
+      },
       "ios": {
         "simulator": true
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "staging",
+        "EXPO_PUBLIC_API_URL": "https://staging-api.example.invalid/api/v1",
+        "EXPO_PUBLIC_ENABLE_MOCKS": "false"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "production",
+        "EXPO_PUBLIC_API_URL": "https://api.example.invalid/api/v1",
+        "EXPO_PUBLIC_ENABLE_MOCKS": "false"
+      }
     }
   },
   "submit": {

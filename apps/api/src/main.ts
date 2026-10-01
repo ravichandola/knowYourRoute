@@ -1,42 +1,37 @@
 import { NestFactory } from '@nestjs/core';
-import { Logger } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import { PinoLogger } from 'nestjs-pino';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter, LoggingInterceptor } from './platform/http';
+import type { AppConfig } from './platform/config/env';
+import { API_PREFIX, configureApp } from './platform/http/bootstrap';
 
+/**
+ * Startup order: env validation (ConfigModule) -> logger -> PrismaService.onModuleInit (DB) ->
+ * CacheService.onModuleInit (Redis) -> StorageModule.onModuleInit (bucket) -> listen.
+ * Any mandatory dependency failing aborts the process with exit code 1.
+ */
 async function bootstrap() {
-  const logger = new Logger('KnowYourRouteAPI');
-  const app = await NestFactory.create(AppModule);
-
-  // Enable CORS for Expo Mobile app development and production clients
-  app.enableCors({
-    origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true,
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+    bodyParser: false,
   });
+  configureApp(app);
 
-  // Global Prefix: /api/v1 (Section 10: API Versioning)
-  app.setGlobalPrefix('api/v1');
+  const config = app.get<ConfigService<AppConfig, true>>(ConfigService);
+  const port = config.get('PORT', { infer: true });
+  const host = config.get('HOST', { infer: true });
+  const nodeEnv = config.get('NODE_ENV', { infer: true });
 
-  // Global Filter and Interceptor
-  app.useGlobalFilters(new HttpExceptionFilter());
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  await app.listen(port, host);
 
-  // Swagger Documentation Setup
-  const config = new DocumentBuilder()
-    .setTitle('Know Your Route API')
-    .setDescription('Route Intelligence, Vehicle Intelligence, and Trip Safety Engine API')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
-
-  const port = process.env.PORT || 4000;
-  await app.listen(port);
-
-  logger.log(`🚀 Know Your Route API running on: http://localhost:${port}/api/v1`);
-  logger.log(`📑 Swagger Documentation available at: http://localhost:${port}/api/docs`);
+  const logger = await app.resolve(PinoLogger);
+  logger.setContext('Bootstrap');
+  logger.info({ port, host, nodeEnv, prefix: `/${API_PREFIX}` }, 'Know Your Route API started');
 }
 
-bootstrap();
+bootstrap().catch((error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`Fatal: API failed to start: ${message}`);
+  process.exit(1);
+});

@@ -63,11 +63,11 @@ module.exports = {
       severity: 'error',
       comment:
         'application/ orchestrates use cases against ports. It must not know adapters (infrastructure), ' +
-        'HTTP or platform plumbing; those are wired in the *.module.ts. (platform/demo seed constants are allowed.)',
+        'HTTP or platform plumbing; those are wired in the *.module.ts. (platform/demo seed constants and platform/errors, the shared error vocabulary, are allowed.)',
       from: { path: `${MODULES}/[^/]+/application/`, pathNot: '\\.spec\\.ts$' },
       to: {
         path: [`${MODULES}/[^/]+/(infrastructure|http)/`, `${API}/platform/`],
-        pathNot: `${API}/platform/demo/`,
+        pathNot: `${API}/platform/(demo|errors)/`,
       },
     },
     {

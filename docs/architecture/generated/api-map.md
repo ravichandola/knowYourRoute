@@ -16,9 +16,9 @@ flowchart LR
 
 | HTTP | Contract entry | Backend handler (controller) | Called from (mobile) |
 | --- | --- | --- | --- |
-| `POST` `/auth/login` | `auth.login` | modules/identity/http/auth.controller.ts:17 `login` | `src/features/auth/hooks/useAuth.ts:12` |
-| `POST` `/auth/signup` | `auth.signup` | modules/identity/http/auth.controller.ts:22 `signup` | `src/features/auth/hooks/useAuth.ts:29` |
-| `POST` `/auth/demo-login` | `auth.demoLogin` | modules/identity/http/auth.controller.ts:27 `demoLogin` | _not used by mobile yet_ |
+| `POST` `/auth/login` | `auth.login` | modules/identity/http/auth.controller.ts:26 `login` | `src/features/auth/hooks/useAuth.ts:12` |
+| `POST` `/auth/signup` | `auth.signup` | modules/identity/http/auth.controller.ts:31 `signup` | `src/features/auth/hooks/useAuth.ts:29` |
+| `POST` `/auth/demo-login` | `auth.demoLogin` | modules/identity/http/auth.controller.ts:36 `demoLogin` | _not used by mobile yet_ |
 | `GET` `/users/me` | `users.me` | modules/identity/http/users.controller.ts:11 `getMe` | _not used by mobile yet_ |
 | `PATCH` `/users/me/onboarded` | `users.markOnboarded` | modules/identity/http/users.controller.ts:16 `markOnboarded` | `src/features/onboarding/screens/PermissionsScreen.tsx:19` |
 | `GET` `/users/me/preferences` | `users.getPreferences` | modules/identity/http/users.controller.ts:21 `getPreferences` | _not used by mobile yet_ |

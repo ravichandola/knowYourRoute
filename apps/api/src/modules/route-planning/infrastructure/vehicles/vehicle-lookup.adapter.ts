@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import type { VehicleProfile } from '@know-your-route/contracts';
-import { VehiclesFacade } from '../../vehicles';
-import type { VehicleLookupPort } from '../domain/ports';
+import { VehiclesFacade } from '../../../vehicles';
+import type { VehicleLookupPort } from '../../domain/ports';
 
 /** Route planning -> vehicles. The only place this module depends on the vehicles module. */
 @Injectable()

@@ -1,5 +1,6 @@
-import { ArgumentMetadata, BadRequestException, Injectable, PipeTransform } from '@nestjs/common';
+import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 import type { ZodType, ZodTypeDef } from 'zod';
+import { ValidationError } from '../errors';
 
 @Injectable()
 export class ZodValidationPipe<T> implements PipeTransform<unknown, T> {
@@ -8,14 +9,10 @@ export class ZodValidationPipe<T> implements PipeTransform<unknown, T> {
   transform(value: unknown, _metadata?: ArgumentMetadata): T {
     const result = this.schema.safeParse(value ?? {});
     if (!result.success) {
-      throw new BadRequestException({
-        message: 'Validation failed',
-        error: 'Bad Request',
-        details: result.error.issues.map((issue) => ({
-          path: issue.path.join('.'),
-          message: issue.message,
-        })),
-      });
+      throw new ValidationError('Validation failed', result.error.issues.map((issue) => ({
+        path: issue.path.join('.'),
+        message: issue.message,
+      })));
     }
     return result.data;
   }

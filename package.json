@@ -9,23 +9,36 @@
     "dev:mobile": "turbo run dev --filter=@know-your-route/mobile",
     "dev:api": "turbo run dev --filter=@know-your-route/api",
     "build": "turbo run build",
-    "lint": "turbo run lint",
+    "lint": "eslint . && node scripts/checks/mobile-network.mjs && turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
     "arch:rules": "depcruise apps/api/src apps/mobile/app apps/mobile/src packages/contracts/src packages/api-client/src --config .dependency-cruiser.cjs --ts-config tsconfig.arch.json",
     "arch:docs": "pnpm --filter @know-your-route/contracts build && node scripts/architecture/generate.mjs",
     "arch:check": "pnpm arch:rules && pnpm --filter @know-your-route/contracts build && node scripts/architecture/generate.mjs --check",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "setup:env": "cp -n .env.example .env || true",
+    "db:generate": "pnpm --filter @know-your-route/api db:generate",
+    "db:migrate": "pnpm --filter @know-your-route/api db:migrate",
+    "db:migrate:deploy": "pnpm --filter @know-your-route/api db:migrate:deploy",
+    "db:migrate:reset": "pnpm --filter @know-your-route/api db:migrate:reset",
+    "db:status": "pnpm --filter @know-your-route/api db:status",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "db:seed": "pnpm --filter @know-your-route/api db:seed"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "dependency-cruiser": "^17.4.3",
+    "eslint": "^9.39.5",
+    "globals": "^17.13.0",
     "prettier": "^3.4.2",
     "turbo": "^2.3.4",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.71.0"
   },
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=20.19.0",
     "pnpm": ">=9.0.0"
   }
 }

@@ -36,10 +36,19 @@ Rules of thumb:
 ## 2. Backend (`apps/api/src`)
 
 ```
-main.ts                      boot (prefix /api/v1, swagger, filters)
+main.ts                      boot (prefix /api/v1, swagger, helmet, pino, shutdown hooks)
 app.module.ts                composition root: lists the modules, nothing else
 platform/                    technical plumbing shared by all modules (no business rules)
-  config/  persistence/  database/  cache/  http/  demo/
+  config/     env validation (Zod schema), persistence driver, select-by-config
+  database/   PrismaService (singleton, ping(), lifecycle hooks)
+  cache/      CacheService (Redis via REDIS_URL, in-memory fallback in dev)
+  logging/    nestjs-pino with structured JSON, redaction, request-id correlation
+  errors/     AppError hierarchy (9 classes), standardized error envelope
+  health/     /health (liveness) + /health/ready (Postgres + Redis readiness)
+  storage/    StorageProvider port, S3StorageProvider (S3/MinIO), StorageService policy
+  http/       HttpExceptionFilter, ZodValidationPipe, ContractBody/ContractQuery
+  persistence/ repository provider factory (memory / prisma swap)
+  demo/       seed data for PERSISTENCE_DRIVER=memory
 modules/
   identity/        users, auth (JWT), preferences      -> exports IdentityModule, @CurrentUser, @Public
   vehicles/        vehicle profiles, telemetry         -> exports VehiclesModule, VehiclesFacade
@@ -74,9 +83,9 @@ sequenceDiagram
   SDK->>C: POST /api/v1/routes/plan
   C->>C: zod validates body (contract)
   C->>U: execute(userId, request)
-  U->>P: VEHICLE_LOOKUP_PORT / ROUTING_PORT / WEATHER_PORT / TOLL_BALANCE_PORT
+  U->>P: VEHICLE_LOOKUP_PORT / ROUTING_PORT / WEATHER_PORT / FASTAG_BALANCE_PORT
   P-->>A: bound in route-planning.module.ts
-  A->>A: vehicle-lookup.adapter -> VehiclesFacade, toll-balance.adapter -> FastagFacade, mock maps/weather
+  A->>A: vehicle-lookup.adapter -> VehiclesFacade, fastag-balance.adapter -> FastagFacade, mock maps/weather
   U-->>C: RoutePlan (pure domain functions compute energy + safety)
   C-->>SDK: JSON
 ```
@@ -88,7 +97,7 @@ silently falling back.
 
 | Variable | Values | Default |
 | --- | --- | --- |
-| `PERSISTENCE_DRIVER` | `memory`, `prisma` | `memory` |
+| `PERSISTENCE_DRIVER` | `memory`, `prisma` | `prisma` |
 | `MAP_PROVIDER`, `WEATHER_PROVIDER`, `VEHICLE_PROVIDER`, `FASTAG_PROVIDER`, `AI_PROVIDER` | `mock` | `mock` |
 
 To add a real provider: implement the port from the module's `domain/` in `infrastructure/`, register it in the
@@ -145,3 +154,100 @@ public exports, a `<name>.module.ts`, and import it in `app.module.ts`. If it ne
 a port in your `domain/` and implement it in `infrastructure/` using the other module's public API.
 
 **Add a mobile feature**: create `features/<name>/` with `index.ts`, add a one-line route file in `app/`.
+
+## 7. Frozen baseline (read before generating code)
+
+This section is the contract for humans and AI assistants. If a change needs to break it, change this page first.
+
+### 7.1 Module boundaries
+
+| Module | Owns | Public API (`index.ts`) | May depend on |
+| --- | --- | --- | --- |
+| `identity` | users, auth, preferences | `IdentityModule`, `@CurrentUser`, `@Public` | - |
+| `vehicles` | vehicle profiles, telemetry | `VehiclesModule`, `VehiclesFacade` | `identity` (decorator only) |
+| `fastag` | FASTag connection, toll sufficiency | `FastagModule`, `FastagFacade` | `identity` (decorator only) |
+| `route-planning` | route discovery and route intelligence orchestration | `RoutePlanningModule` | `vehicles`, `fastag`, `identity` (decorator only) |
+| `trips` | trips, AI explanations | `TripsModule` | `vehicles`, `identity` (decorator only) |
+
+Direction is one way: `route-planning` never imports `trips`; `trips` never reaches into `route-planning`.
+A module reaches another one only inside an `infrastructure/` adapter that implements a port of its own `domain/`.
+
+### 7.2 Layer rules inside a module
+
+| Layer | May import | Must not import |
+| --- | --- | --- |
+| `domain/` | own `domain/`, `packages/contracts`, zod | Nest, Prisma, vendors, other layers, other modules, `platform/` |
+| `application/` | `domain/`, contracts, Nest decorators | `infrastructure/`, `http/`, `platform/`, other modules |
+| `infrastructure/` | `domain/`, other modules' `index.ts`, `platform/` | `http/`, `application/` |
+| `http/` | `application/`, `domain/`, contracts, `platform/http` | `infrastructure/` |
+
+These are enforced by `.dependency-cruiser.cjs`. Domain code never mentions a provider name (no "Google", "Mapbox", ...);
+provider names exist only in adapter file names and in `*_PROVIDER` config values.
+
+### 7.3 Package rules
+
+`contracts` depends on nothing internal -> `api-client` depends only on `contracts` -> `apps/mobile` uses `api-client`
+only through `src/shared/api`. `apps/api` and `apps/mobile` never import each other.
+
+### 7.4 `route-planning` tree
+
+```
+route-planning/
+  http/            routes.controller.ts
+  application/     plan-route.use-case.ts
+  domain/
+    ports/         routing | weather | vehicle-lookup | fastag-balance | plan-cache  (*.port.ts + index.ts)
+    route/         default-vehicle.ts, plan-cache-key.ts
+    energy/        energy.ts
+    safety/        safety.ts
+  infrastructure/
+    routing/       mock-maps.adapter.ts            (MAP_PROVIDER)
+    weather/       mock-weather.adapter.ts         (WEATHER_PROVIDER)
+    vehicles/      vehicle-lookup.adapter.ts       -> VehiclesFacade
+    fastag/        fastag-balance.adapter.ts       -> FastagFacade
+    cache/         plan-cache.adapter.ts           -> platform cache
+  route-planning.module.ts
+  index.ts
+```
+
+Growth rules (do not create these folders ahead of code):
+
+- A new capability (`traffic`, `toll` estimate, `stops`/`places`, `energy` providers) adds one `domain/ports/<x>.port.ts`,
+  one `infrastructure/<x>/` adapter and a `selectByConfig` binding. Pure rules for it go in `domain/<x>/`.
+- Split `PlanRouteUseCase` into `generate-routes` / `compare-routes` use cases only when it has two distinct reasons
+  to change. Never grow a single service file to hold several capabilities.
+- Port names describe the capability, not the vendor: `ROUTING_PORT`, `WEATHER_PORT`, `VEHICLE_LOOKUP_PORT`,
+  `FASTAG_BALANCE_PORT`, `PLAN_CACHE_PORT`. A future toll cost estimate port is `TOLL_ESTIMATE_PORT` (not the FASTag balance).
+
+### 7.5 Data flow
+
+```
+mobile -> api-client -> contracts -> HTTP -> route-planning (PlanRouteUseCase)
+  -> ports: vehicles, fastag, routing, weather
+  -> RouteProfile enriched with energy, safety, weather, fastag
+  -> Route options -> mobile -> trips / AI explanation (trips module, separate request)
+```
+
+## 8. Phase 0 infrastructure baseline
+
+The foundation layer established before feature development:
+
+| Concern | Implementation | Location |
+| --- | --- | --- |
+| Config | Zod env schema, env-aware validation (dev/test/prod rules), fail-fast | `platform/config/env.ts` |
+| Database | PostgreSQL via Prisma, committed migrations, `db:*` scripts | `platform/database/`, `prisma/` |
+| Cache | Redis (ioredis via `REDIS_URL`), in-memory fallback in dev, prod fail-fast | `platform/cache/` |
+| Logging | pino via nestjs-pino, structured JSON, request-id correlation, redaction | `platform/logging/` |
+| Errors | 9 error classes, standard envelope `{ success: false, error: { code, message, requestId } }` | `platform/errors/` |
+| Auth | JWT with issuer/audience, global guard, `@CurrentUser`, demo-login non-prod only | `modules/identity/` |
+| HTTP | helmet, throttler, CORS allow-list, body limits, Swagger gating, graceful shutdown | `main.ts` |
+| Health | `GET /health` (liveness), `GET /health/ready` (Postgres + Redis) | `platform/health/` |
+| Storage | S3/MinIO provider, StorageService with key policy, type/size validation, signed URLs | `platform/storage/` |
+| Mobile | api-client with request-id, error envelope parsing, GET retry, token persistence | `packages/api-client/`, `apps/mobile/` |
+| Infra | `docker-compose.yml` (Postgres 16, Redis 7, Silo as S3 stand-in), `.nvmrc`, `infra:up`/`infra:down` | root |
+| CI | GitHub Actions with Postgres/Redis services, migrations, typecheck, lint, test, build | `.github/workflows/ci.yml` |
+
+### Frozen rule
+
+> Mobile talks to API. API owns business logic. PostgreSQL owns persistent state. Redis owns transient/cache state.
+> External providers are accessed only through backend adapters. Shared contracts remain the single source of truth.

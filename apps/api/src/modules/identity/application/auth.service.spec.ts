@@ -1,9 +1,9 @@
 /// <reference types="jest" />
 
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { InMemoryUserRepository } from '../infrastructure/in-memory-user.repository';
+import { AuthenticationError, ConflictError } from '../../../platform/errors';
 import { DEMO_EMAIL, DEMO_PASSWORD, DEMO_USER_ID } from '../../../platform/demo/demo-data';
 
 describe('AuthService', () => {
@@ -49,13 +49,23 @@ describe('AuthService', () => {
   it('rejects invalid credentials', async () => {
     await expect(
       authService.login({ email: DEMO_EMAIL, password: 'wrong-password' })
-    ).rejects.toBeInstanceOf(UnauthorizedException);
+    ).rejects.toBeInstanceOf(AuthenticationError);
   });
 
   it('rejects malformed tokens instead of falling back to the demo user', async () => {
     await expect(authService.validateToken('jwt_token_usr_other_1')).rejects.toBeInstanceOf(
-      UnauthorizedException
+      AuthenticationError
     );
+  });
+
+  it('does not report a repository outage as an invalid token', async () => {
+    const { token } = await authService.demoLogin();
+    const outage = new Error('database unreachable');
+    jest.spyOn(InMemoryUserRepository.prototype, 'findById').mockRejectedValueOnce(outage);
+
+    const error = await authService.validateToken(token).catch((e: unknown) => e);
+    expect(error).toBe(outage);
+    expect(error).not.toBeInstanceOf(AuthenticationError);
   });
 
   it('creates a new account and rejects a duplicate email', async () => {
@@ -64,7 +74,7 @@ describe('AuthService', () => {
     expect(created.user.email).toBe('asha@example.com');
     expect(created.user.isOnboarded).toBe(false);
 
-    await expect(authService.signup(signup)).rejects.toBeInstanceOf(ConflictException);
+    await expect(authService.signup(signup)).rejects.toBeInstanceOf(ConflictError);
     await expect(
       authService.login({ email: 'asha@example.com', password: 'secret123' })
     ).resolves.toEqual(expect.objectContaining({ token: expect.any(String) }));

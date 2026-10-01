@@ -31,9 +31,9 @@ Which file creates each arrow:
 | From | Calls | Through (file that imports it) |
 | --- | --- | --- |
 | fastag | identity | `modules/fastag/http/fastag.controller.ts` |
-| route-planning | fastag | `modules/route-planning/infrastructure/toll-balance.adapter.ts`<br>`modules/route-planning/route-planning.module.ts` |
+| route-planning | fastag | `modules/route-planning/infrastructure/fastag/fastag-balance.adapter.ts`<br>`modules/route-planning/route-planning.module.ts` |
 | route-planning | identity | `modules/route-planning/http/routes.controller.ts` |
-| route-planning | vehicles | `modules/route-planning/infrastructure/vehicle-lookup.adapter.ts`<br>`modules/route-planning/route-planning.module.ts` |
+| route-planning | vehicles | `modules/route-planning/infrastructure/vehicles/vehicle-lookup.adapter.ts`<br>`modules/route-planning/route-planning.module.ts` |
 | trips | identity | `modules/trips/http/trips.controller.ts` |
 | trips | vehicles | `modules/trips/infrastructure/vehicle-lookup.adapter.ts`<br>`modules/trips/trips.module.ts` |
 | vehicles | identity | `modules/vehicles/http/vehicles.controller.ts` |
@@ -43,8 +43,8 @@ Which file creates each arrow:
 | From | Calls | Through (file that imports it) |
 | --- | --- | --- |
 | fastag | platform | `modules/fastag/fastag.module.ts`<br>`modules/fastag/http/fastag.controller.ts`<br>`modules/fastag/infrastructure/in-memory-fastag-connection.repository.ts`<br>`modules/fastag/infrastructure/prisma-fastag-connection.repository.ts` |
-| identity | platform | `modules/identity/application/auth.service.ts`<br>`modules/identity/http/auth.controller.ts`<br>`modules/identity/http/users.controller.ts`<br>`modules/identity/identity.module.ts`<br>`modules/identity/infrastructure/in-memory-user.repository.ts`<br>`modules/identity/infrastructure/prisma-user.repository.ts` |
-| route-planning | platform | `modules/route-planning/http/routes.controller.ts`<br>`modules/route-planning/infrastructure/plan-cache.adapter.ts`<br>`modules/route-planning/route-planning.module.ts` |
+| identity | platform | `modules/identity/application/auth.service.ts`<br>`modules/identity/http/auth.controller.ts`<br>`modules/identity/http/jwt-auth.guard.ts`<br>`modules/identity/http/users.controller.ts`<br>`modules/identity/identity.module.ts`<br>`modules/identity/index.ts`<br>`modules/identity/infrastructure/in-memory-user.repository.ts`<br>`modules/identity/infrastructure/prisma-user.repository.ts` |
+| route-planning | platform | `modules/route-planning/http/routes.controller.ts`<br>`modules/route-planning/infrastructure/cache/plan-cache.adapter.ts`<br>`modules/route-planning/route-planning.module.ts` |
 | trips | platform | `modules/trips/http/trips.controller.ts`<br>`modules/trips/trips.module.ts` |
 | vehicles | platform | `modules/vehicles/http/vehicles.controller.ts`<br>`modules/vehicles/infrastructure/in-memory-vehicle.repository.ts`<br>`modules/vehicles/infrastructure/prisma-vehicle.repository.ts`<br>`modules/vehicles/vehicles.module.ts` |
 
@@ -107,6 +107,7 @@ flowchart TB
   mobile_features --> pkg_contracts
   mobile_routes --> mobile_features
   mobile_routes --> mobile_shared
+  mobile_routes --> mobile_shell
   mobile_shared --> pkg_api_client
   mobile_shared --> pkg_contracts
   mobile_shell --> mobile_features

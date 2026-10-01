@@ -11,7 +11,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     super();
   }
 
-  private get isEnabled(): boolean {
+  get isEnabled(): boolean {
     return getPersistenceDriver(this.config) === 'prisma';
   }
 
@@ -21,12 +21,24 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       return;
     }
     await this.$connect();
+    await this.ping();
     this.logger.log('Connected to PostgreSQL via Prisma');
+  }
+
+  async ping(): Promise<boolean> {
+    if (!this.isEnabled) return false;
+    try {
+      await this.$queryRaw`SELECT 1`;
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async onModuleDestroy() {
     if (this.isEnabled) {
       await this.$disconnect();
+      this.logger.log('Disconnected from PostgreSQL');
     }
   }
 }

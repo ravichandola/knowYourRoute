@@ -5,22 +5,22 @@ import type {
   RouteProfile,
   VehicleProfile,
 } from '@know-your-route/contracts';
-import { DEFAULT_PLANNING_VEHICLE } from '../domain/default-vehicle';
-import { calculateEnergy } from '../domain/energy';
-import { buildPlanCacheKey } from '../domain/plan-cache-key';
+import { calculateEnergy } from '../domain/energy/energy';
 import {
+  FASTAG_BALANCE_PORT,
+  FastagBalancePort,
   PLAN_CACHE_PORT,
   PlanCachePort,
   ROUTING_PORT,
   RoutingPort,
-  TOLL_BALANCE_PORT,
-  TollBalancePort,
   VEHICLE_LOOKUP_PORT,
   VehicleLookupPort,
   WEATHER_PORT,
   WeatherPort,
 } from '../domain/ports';
-import { evaluateSafety } from '../domain/safety';
+import { DEFAULT_PLANNING_VEHICLE } from '../domain/route/default-vehicle';
+import { buildPlanCacheKey } from '../domain/route/plan-cache-key';
+import { evaluateSafety } from '../domain/safety/safety';
 
 const PLAN_CACHE_TTL_SECONDS = 600;
 
@@ -37,7 +37,7 @@ export class PlanRouteUseCase {
     @Inject(ROUTING_PORT) private readonly routing: RoutingPort,
     @Inject(WEATHER_PORT) private readonly weather: WeatherPort,
     @Inject(VEHICLE_LOOKUP_PORT) private readonly vehicles: VehicleLookupPort,
-    @Inject(TOLL_BALANCE_PORT) private readonly tolls: TollBalancePort,
+    @Inject(FASTAG_BALANCE_PORT) private readonly fastag: FastagBalancePort,
     @Inject(PLAN_CACHE_PORT) private readonly cache: PlanCachePort
   ) {}
 
@@ -62,7 +62,7 @@ export class PlanRouteUseCase {
         energy: calculateEnergy(route.distanceKm, vehicle),
         safety: evaluateSafety(route.distanceKm, route.road.highwayPercentage),
         weather,
-        fastag: await this.tolls.checkTollSufficiency({
+        fastag: await this.fastag.checkTollSufficiency({
           userId,
           vehicleId: request.vehicleId,
           tollCost: route.toll.totalCost,

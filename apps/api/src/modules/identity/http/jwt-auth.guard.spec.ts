@@ -1,7 +1,8 @@
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AuthService } from '../application/auth.service';
+import { AuthenticationError } from '../../../platform/errors';
 import { DEMO_USER_ID } from '../../../platform/demo/demo-data';
 
 describe('JwtAuthGuard', () => {
@@ -39,7 +40,7 @@ describe('JwtAuthGuard', () => {
     const authService = { validateToken: jest.fn() } as unknown as AuthService;
     const guard = new JwtAuthGuard(reflector, authService);
 
-    await expect(guard.canActivate(createContext())).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(guard.canActivate(createContext())).rejects.toBeInstanceOf(AuthenticationError);
   });
 
   it('attaches the authenticated user from a valid token', async () => {

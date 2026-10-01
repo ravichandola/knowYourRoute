@@ -4,14 +4,14 @@ import type {
   VehicleProfile,
 } from '@know-your-route/contracts';
 import { DEMO_USER_ID, DEMO_VEHICLE_ID } from '../../../platform/demo/demo-data';
-import { DEFAULT_PLANNING_VEHICLE } from '../domain/default-vehicle';
 import type {
+  FastagBalancePort,
   PlanCachePort,
-  TollBalancePort,
   VehicleLookupPort,
   WeatherPort,
 } from '../domain/ports';
-import { MockMapsAdapter } from '../infrastructure/maps/mock-maps.adapter';
+import { DEFAULT_PLANNING_VEHICLE } from '../domain/route/default-vehicle';
+import { MockMapsAdapter } from '../infrastructure/routing/mock-maps.adapter';
 import { MockWeatherAdapter } from '../infrastructure/weather/mock-weather.adapter';
 import { PlanRouteUseCase } from './plan-route.use-case';
 
@@ -55,7 +55,7 @@ class MapCache implements PlanCachePort {
 
 describe('PlanRouteUseCase', () => {
   let vehicles: jest.Mocked<VehicleLookupPort>;
-  let tolls: jest.Mocked<TollBalancePort>;
+  let tolls: jest.Mocked<FastagBalancePort>;
   let weather: jest.Mocked<WeatherPort>;
   let cache: MapCache;
   let useCase: PlanRouteUseCase;

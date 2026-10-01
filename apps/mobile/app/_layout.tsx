@@ -1,22 +1,28 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { theme } from '@/shared/theme';
+import { useAuthStore } from '@/features/auth';
 
-// Create a stable TanStack QueryClient instance
+import '@/app-shell/configure-api';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      staleTime: 1000 * 60 * 5, // 5 minutes cache
+      staleTime: 1000 * 60 * 5,
       refetchOnWindowFocus: false,
     },
   },
 });
 
 export default function RootLayout() {
+  useEffect(() => {
+    useAuthStore.getState().hydrate();
+  }, []);
+
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>

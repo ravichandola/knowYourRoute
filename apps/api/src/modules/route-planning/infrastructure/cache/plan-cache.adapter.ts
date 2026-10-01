@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CacheService } from '../../../platform/cache/cache.service';
-import type { PlanCachePort } from '../domain/ports';
+import { CacheService } from '../../../../platform/cache/cache.service';
+import type { PlanCachePort } from '../../domain/ports';
 
 /** Route planning -> platform cache (Redis with in-memory fallback). */
 @Injectable()

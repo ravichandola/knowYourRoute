@@ -6,22 +6,37 @@ export interface ApiClientConfig {
 }
 
 export interface ApiErrorResponse {
-  statusCode: number;
-  message: string;
-  error?: string;
-  details?: unknown;
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    requestId: string;
+    details?: unknown;
+  };
 }
 
 export class ApiError extends Error {
   constructor(
     public statusCode: number,
     message: string,
-    public details?: unknown
+    public code: string = 'UNKNOWN',
+    public requestId: string = '',
+    public details?: unknown,
   ) {
     super(message);
     this.name = 'ApiError';
   }
 }
+
+function generateRequestId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `req_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
+const RETRYABLE_STATUS = new Set([502, 503, 504]);
+const MAX_RETRIES = 2;
 
 export class BaseApiClient {
   private baseUrl: string;
@@ -40,7 +55,6 @@ export class BaseApiClient {
     this.baseUrl = url.replace(/\/$/, '');
   }
 
-  /** Late-binds auth behaviour so the client can be created before the auth state exists. */
   public configure(config: Pick<ApiClientConfig, 'getAuthToken' | 'onUnauthorized'>) {
     if (config.getAuthToken) this.getAuthToken = config.getAuthToken;
     if (config.onUnauthorized) this.onUnauthorized = config.onUnauthorized;
@@ -48,12 +62,14 @@ export class BaseApiClient {
 
   async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+    const requestId = generateRequestId();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
+      'x-request-id': requestId,
       ...((options.headers as Record<string, string>) || {}),
     };
 
@@ -64,59 +80,93 @@ export class BaseApiClient {
       }
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
+    const method = (options.method ?? 'GET').toUpperCase();
+    const isIdempotent = method === 'GET' || method === 'HEAD';
 
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers,
-        signal: controller.signal,
-      });
+    let lastError: unknown;
 
-      if (!response.ok) {
-        if (response.status === 401 && this.onUnauthorized) {
-          this.onUnauthorized();
+    for (let attempt = 0; attempt <= (isIdempotent ? MAX_RETRIES : 0); attempt++) {
+      if (attempt > 0) {
+        await new Promise((r) => setTimeout(r, Math.min(attempt * 500, 2000)));
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
+
+      try {
+        const response = await fetch(url, {
+          ...options,
+          headers,
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          if (response.status === 401 && this.onUnauthorized) {
+            this.onUnauthorized();
+          }
+
+          let errorData: ApiErrorResponse | undefined;
+          try {
+            const json = await response.json();
+            if (json && typeof json === 'object' && json.success === false && json.error) {
+              errorData = json as ApiErrorResponse;
+            }
+          } catch {
+            // response body not JSON
+          }
+
+          const err = errorData
+            ? new ApiError(
+                response.status,
+                errorData.error.message,
+                errorData.error.code,
+                errorData.error.requestId,
+                errorData.error.details,
+              )
+            : new ApiError(
+                response.status,
+                response.statusText || 'Network request failed',
+                'UNKNOWN',
+                requestId,
+              );
+
+          if (isIdempotent && RETRYABLE_STATUS.has(response.status) && attempt < MAX_RETRIES) {
+            lastError = err;
+            continue;
+          }
+
+          throw err;
         }
 
-        let errorData: ApiErrorResponse;
-        try {
-          errorData = await response.json();
-        } catch {
-          errorData = {
-            statusCode: response.status,
-            message: response.statusText || 'Network request failed',
-          };
+        if (response.status === 204) {
+          return {} as T;
         }
 
-        throw new ApiError(
-          errorData.statusCode || response.status,
-          errorData.message || 'An unexpected error occurred',
-          errorData.details
+        return (await response.json()) as T;
+      } catch (err: unknown) {
+        if (err instanceof ApiError) {
+          throw err;
+        }
+
+        if ((err as Error)?.name === 'AbortError') {
+          lastError = new ApiError(408, 'Request timed out. Please check your connection.', 'TIMEOUT', requestId);
+          if (!isIdempotent || attempt >= MAX_RETRIES) throw lastError;
+          continue;
+        }
+
+        lastError = new ApiError(
+          0,
+          (err as Error)?.message || 'Network error, please verify your internet connection.',
+          'NETWORK_ERROR',
+          requestId,
         );
+        if (!isIdempotent || attempt >= MAX_RETRIES) throw lastError;
+      } finally {
+        clearTimeout(timeoutId);
       }
-
-      if (response.status === 204) {
-        return {} as T;
-      }
-
-      return (await response.json()) as T;
-    } catch (err: unknown) {
-      if (err instanceof ApiError) {
-        throw err;
-      }
-
-      if ((err as Error)?.name === 'AbortError') {
-        throw new ApiError(408, 'Request timed out. Please check your connection.');
-      }
-
-      throw new ApiError(
-        500,
-        (err as Error)?.message || 'Network error, please verify your internet connection.'
-      );
-    } finally {
-      clearTimeout(timeoutId);
     }
+
+    throw lastError;
   }
 
   get<T>(endpoint: string, params?: Record<string, string | number | boolean | undefined>): Promise<T> {

@@ -17,7 +17,7 @@ export function repositoryProviders<T>(
     {
       provide: token,
       useFactory: (config: ConfigService, memory: T, prisma: T) =>
-        selectByConfig(config, PERSISTENCE_DRIVER_KEY, { memory, prisma }, 'memory'),
+        selectByConfig(config, PERSISTENCE_DRIVER_KEY, { memory, prisma }, 'prisma'),
       inject: [ConfigService, implementations.memory, implementations.prisma],
     },
   ];

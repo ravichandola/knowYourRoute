@@ -3,10 +3,11 @@ module.exports = {
   rootDir: 'src',
   testRegex: '.*\\.spec\\.ts$',
   transform: {
-    '^.+\\.(t|j)s$': 'ts-jest',
+    '^.+\\.(t|j)s$': ['ts-jest', { tsconfig: '<rootDir>/../tsconfig.jest.json' }],
   },
+  // @nestjs/jwt v12 ships ES modules; transform it so tests exercise the real library, not a mock.
+  transformIgnorePatterns: ['/node_modules/(?!.*@nestjs[/+]jwt)'],
   moduleNameMapper: {
-    '^@nestjs/jwt$': '<rootDir>/test/mocks/nestjs-jwt.ts',
     '^@know-your-route/contracts$': '<rootDir>/../../../packages/contracts/src/index.ts',
   },
   collectCoverageFrom: ['**/*.(t|j)s'],

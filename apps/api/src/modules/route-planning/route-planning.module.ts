@@ -6,17 +6,17 @@ import { FastagModule } from '../fastag';
 import { VehiclesModule } from '../vehicles';
 import { PlanRouteUseCase } from './application/plan-route.use-case';
 import {
+  FASTAG_BALANCE_PORT,
   PLAN_CACHE_PORT,
   ROUTING_PORT,
-  TOLL_BALANCE_PORT,
   VEHICLE_LOOKUP_PORT,
   WEATHER_PORT,
 } from './domain/ports';
 import { RoutesController } from './http/routes.controller';
-import { MockMapsAdapter } from './infrastructure/maps/mock-maps.adapter';
-import { PlanCacheAdapter } from './infrastructure/plan-cache.adapter';
-import { TollBalanceAdapter } from './infrastructure/toll-balance.adapter';
-import { VehicleLookupAdapter } from './infrastructure/vehicle-lookup.adapter';
+import { PlanCacheAdapter } from './infrastructure/cache/plan-cache.adapter';
+import { FastagBalanceAdapter } from './infrastructure/fastag/fastag-balance.adapter';
+import { MockMapsAdapter } from './infrastructure/routing/mock-maps.adapter';
+import { VehicleLookupAdapter } from './infrastructure/vehicles/vehicle-lookup.adapter';
 import { MockWeatherAdapter } from './infrastructure/weather/mock-weather.adapter';
 
 @Module({
@@ -39,7 +39,7 @@ import { MockWeatherAdapter } from './infrastructure/weather/mock-weather.adapte
       inject: [ConfigService, MockWeatherAdapter],
     },
     { provide: VEHICLE_LOOKUP_PORT, useClass: VehicleLookupAdapter },
-    { provide: TOLL_BALANCE_PORT, useClass: TollBalanceAdapter },
+    { provide: FASTAG_BALANCE_PORT, useClass: FastagBalanceAdapter },
     { provide: PLAN_CACHE_PORT, useClass: PlanCacheAdapter },
   ],
 })

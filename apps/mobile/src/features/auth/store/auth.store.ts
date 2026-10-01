@@ -1,5 +1,36 @@
 import { create } from 'zustand';
 import { User } from '@know-your-route/contracts';
+import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
+
+const TOKEN_KEY = 'auth_token';
+const USER_KEY = 'auth_user';
+
+async function persistToken(token: string | null): Promise<void> {
+  try {
+    if (Platform.OS === 'web') return;
+    if (token) {
+      await SecureStore.setItemAsync(TOKEN_KEY, token);
+    } else {
+      await SecureStore.deleteItemAsync(TOKEN_KEY);
+    }
+  } catch {
+    // best-effort
+  }
+}
+
+async function persistUser(user: User | null): Promise<void> {
+  try {
+    if (Platform.OS === 'web') return;
+    if (user) {
+      await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+    } else {
+      await SecureStore.deleteItemAsync(USER_KEY);
+    }
+  } catch {
+    // best-effort
+  }
+}
 
 interface AuthState {
   token: string | null;
@@ -10,34 +41,52 @@ interface AuthState {
   updateUser: (user: Partial<User>) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
+  hydrate: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
   user: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
 
-  setAuth: (user, token) =>
-    set({
-      user,
-      token,
-      isAuthenticated: true,
-      isLoading: false,
-    }),
+  setAuth: (user, token) => {
+    set({ user, token, isAuthenticated: true, isLoading: false });
+    persistToken(token);
+    persistUser(user);
+  },
 
   updateUser: (partial) =>
-    set((state) => ({
-      user: state.user ? { ...state.user, ...partial } : null,
-    })),
-
-  logout: () =>
-    set({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      isLoading: false,
+    set((state) => {
+      const updated = state.user ? { ...state.user, ...partial } : null;
+      if (updated) persistUser(updated);
+      return { user: updated };
     }),
 
+  logout: () => {
+    set({ user: null, token: null, isAuthenticated: false, isLoading: false });
+    persistToken(null);
+    persistUser(null);
+  },
+
   setLoading: (isLoading) => set({ isLoading }),
+
+  hydrate: async () => {
+    if (Platform.OS === 'web') {
+      set({ isLoading: false });
+      return;
+    }
+    try {
+      const token = await SecureStore.getItemAsync(TOKEN_KEY);
+      const userJson = await SecureStore.getItemAsync(USER_KEY);
+      if (token && userJson) {
+        const user = JSON.parse(userJson) as User;
+        set({ token, user, isAuthenticated: true, isLoading: false });
+      } else {
+        set({ isLoading: false });
+      }
+    } catch {
+      set({ isLoading: false });
+    }
+  },
 }));

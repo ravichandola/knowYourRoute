@@ -8,10 +8,9 @@ import { Navigation2, ShieldCheck, Zap, Fuel } from 'lucide-react-native';
 
 export default function IndexScreen() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, isLoading, user } = useAuthStore();
 
   useEffect(() => {
-    // If user is already authenticated in session, route directly
     if (isAuthenticated) {
       if (user?.isOnboarded) {
         router.replace('/(tabs)/home');
@@ -20,6 +19,11 @@ export default function IndexScreen() {
       }
     }
   }, [isAuthenticated, user, router]);
+
+  // Avoid flashing the landing page while the stored session is being restored.
+  if (isLoading || isAuthenticated) {
+    return <SafeAreaView style={styles.safeArea} />;
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>

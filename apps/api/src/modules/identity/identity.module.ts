@@ -26,7 +26,15 @@ import { PrismaUserRepository } from './infrastructure/prisma-user.repository';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: resolveJwtSecret(config),
-        signOptions: { expiresIn: toExpirySeconds(config.get<string>('JWT_EXPIRES_IN') || '7d') },
+        signOptions: {
+          expiresIn: toExpirySeconds(config.get<string>('JWT_EXPIRES_IN') || '7d'),
+          issuer: config.get<string>('JWT_ISSUER', 'know-your-route'),
+          audience: config.get<string>('JWT_AUDIENCE', 'know-your-route'),
+        },
+        verifyOptions: {
+          issuer: config.get<string>('JWT_ISSUER', 'know-your-route'),
+          audience: config.get<string>('JWT_AUDIENCE', 'know-your-route'),
+        },
       }),
     }),
   ],
