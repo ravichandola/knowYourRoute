@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { planRoutesHref } from '@/shared/navigation';
+import { Screen } from '@/shared/layout';
 import { Header, Input, Button, Card } from '@/shared/ui';
 import { useRouteStore } from '../store/route.store';
 import { useVehicleStore } from '@/features/vehicles';
@@ -52,19 +54,18 @@ export default function PlanIndexScreen() {
       },
       {
         onSuccess: (data) => {
-          router.push({
-            pathname: '/plan/routes',
-            params: { routesData: JSON.stringify(data.routes) },
-          });
+          router.push(planRoutesHref(JSON.stringify(data.routes)));
         },
       }
     );
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header title="Plan Route" subtitle="Configure points & preferences" />
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+    <Screen
+      header={<Header title="Plan Route" subtitle="Configure points & preferences" />}
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
         {/* Origin & Destination Inputs with Swap */}
         <Card style={styles.inputCard}>
           <View style={styles.inputRow}>
@@ -151,16 +152,11 @@ export default function PlanIndexScreen() {
           onPress={handleDiscover}
           style={styles.discoverBtn}
         />
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   container: {
     padding: theme.spacing.lg,
     flexGrow: 1,

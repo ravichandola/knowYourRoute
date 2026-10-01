@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import {
-  View,
   Text,
   StyleSheet,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { routes } from '@/shared/navigation';
+import { ResponsiveContainer, Screen } from '@/shared/layout';
 import { Phone } from 'lucide-react-native';
 import { Header, Input, Button } from '@/shared/ui';
-import { ResponsiveContainer } from '@/shared/layout';
 import { useResponsive } from '@/shared/hooks';
 import { welcomeTheme } from '../theme/welcome.theme';
 
@@ -32,14 +31,17 @@ export default function MobileLoginScreen() {
     Alert.alert(
       'OTP Verification',
       'Mobile OTP verification is coming soon. Use email sign-in for now.',
-      [{ text: 'Go to Sign In', onPress: () => router.push('/(auth)/login') }]
+      [{ text: 'Go to Sign In', onPress: () => router.push(routes.auth.login) }]
     );
   };
 
   return (
     <ResponsiveContainer maxWidth={useWebSplitLayout ? 560 : contentMaxWidth}>
-      <SafeAreaView style={styles.safeArea}>
-        <Header title="Mobile Number" subtitle="We'll send you a one-time password" />
+      <Screen
+        backgroundColor={welcomeTheme.colors.background}
+        header={<Header title="Mobile Number" subtitle="We'll send you a one-time password" />}
+        scroll={false}
+      >
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -83,16 +85,12 @@ export default function MobileLoginScreen() {
             </Text>
           </ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </Screen>
     </ResponsiveContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: welcomeTheme.colors.background,
-  },
   flex: {
     flex: 1,
   },

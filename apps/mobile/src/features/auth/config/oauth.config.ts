@@ -30,10 +30,10 @@ export function isGoogleConfiguredForPlatform(): boolean {
     return !!webClientId;
   }
   if (Platform.OS === 'ios') {
-    return !!(iosClientId || webClientId);
+    return !!iosClientId;
   }
   if (Platform.OS === 'android') {
-    return !!(androidClientId || webClientId);
+    return !!androidClientId;
   }
 
   return hasAnyGoogleClientId();

@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { routes } from '@/shared/navigation';
+import { Screen } from '@/shared/layout';
 import { Header, Card, Badge, Button, DevBadge } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
 import { theme } from '@/shared/theme';
@@ -12,13 +14,16 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     logout();
-    router.replace('/');
+    router.replace(routes.landing);
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header title="Driver Profile" subtitle="Account & Intelligence Preferences" showBack={false} />
-      <ScrollView contentContainerStyle={styles.container}>
+    <Screen
+      header={
+        <Header title="Driver Profile" subtitle="Account & Intelligence Preferences" showBack={false} />
+      }
+      contentContainerStyle={styles.container}
+    >
         <View style={styles.devRow}>
           <DevBadge />
         </View>
@@ -85,16 +90,11 @@ export default function ProfileScreen() {
           onPress={handleLogout}
           style={styles.logoutBtn}
         />
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   container: {
     padding: theme.spacing.lg,
     paddingBottom: theme.spacing['4xl'],

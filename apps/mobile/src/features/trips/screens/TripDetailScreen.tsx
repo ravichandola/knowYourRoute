@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { routes } from '@/shared/navigation';
+import { Screen } from '@/shared/layout';
 import { Header, Card, Button, Badge, LoadingState } from '@/shared/ui';
 import { useTripDetail } from '../hooks/useTrip';
 import { theme } from '@/shared/theme';
@@ -21,20 +23,22 @@ export default function TripOverviewScreen() {
 
   if (isLoading || !trip) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <Header title="Trip Details" />
+      <Screen header={<Header title="Trip Details" />} scroll={false}>
         <LoadingState message="Fetching trip record..." />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header
-        title={`${trip.origin.name} ➔ ${trip.destination.name}`}
-        subtitle={`Status: ${trip.status}`}
-      />
-      <ScrollView contentContainerStyle={styles.container}>
+    <Screen
+      header={
+        <Header
+          title={`${trip.origin.name} ➔ ${trip.destination.name}`}
+          subtitle={`Status: ${trip.status}`}
+        />
+      }
+      contentContainerStyle={styles.container}
+    >
         {/* Overview Metric Card */}
         <Card style={styles.overviewCard}>
           <View style={styles.headerRow}>
@@ -106,19 +110,14 @@ export default function TripOverviewScreen() {
           size="lg"
           variant="primary"
           icon={<Play size={18} color={theme.colors.white} />}
-          onPress={() => router.push('/trip/live')}
+          onPress={() => router.push(routes.trip.live)}
           style={styles.actionBtn}
         />
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   container: {
     padding: theme.spacing.lg,
   },

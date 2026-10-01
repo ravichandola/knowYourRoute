@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { Alert, Linking, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { routes } from '@/shared/navigation';
 import { useResponsive } from '@/shared/hooks';
 import { ResponsiveContainer } from '@/shared/layout';
 import { WelcomeMobileLayout, WelcomeWebLayout } from '../components/welcome';
@@ -35,11 +36,11 @@ function WelcomeScreenContent({ googleSignIn }: WelcomeScreenContentProps) {
   const appleSignIn = useAppleSignIn();
 
   const handleSkip = useCallback(() => {
-    router.push('/(auth)/login');
+    router.push(routes.auth.login);
   }, [router]);
 
   const handleMobileLogin = useCallback(() => {
-    router.push('/(auth)/mobile-login');
+    router.push(routes.auth.mobileLogin);
   }, [router]);
 
   const handleGoogleLogin = useCallback(() => {

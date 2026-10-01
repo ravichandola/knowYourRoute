@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { routes } from '@/shared/navigation';
+import { Screen } from '@/shared/layout';
 import { Header, Card, Button, Badge } from '@/shared/ui';
 import { VehicleCard } from '../components/VehicleCard';
 import { useVehicles, useUploadVehicleSnapshot } from '../hooks/useVehicles';
@@ -62,9 +64,12 @@ export default function VehicleTabScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header title="Vehicle Intelligence" subtitle="Telemetry & Canonical Specs" showBack={false} />
-      <ScrollView contentContainerStyle={styles.container}>
+    <Screen
+      header={
+        <Header title="Vehicle Intelligence" subtitle="Telemetry & Canonical Specs" showBack={false} />
+      }
+      contentContainerStyle={styles.container}
+    >
         {successBanner ? (
           <View style={styles.banner}>
             <CheckCircle2 size={16} color={theme.colors.emerald[500]} />
@@ -150,19 +155,14 @@ export default function VehicleTabScreen() {
           <Button
             title="Register Vehicle"
             variant="primary"
-            onPress={() => router.push('/(onboarding)/vehicle')}
+            onPress={() => router.push(routes.onboarding.vehicle)}
           />
         )}
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   container: {
     padding: theme.spacing.lg,
     paddingBottom: theme.spacing['4xl'],

@@ -51,6 +51,9 @@ function useGoogleSignInWeb(): GoogleSignInController {
 
   const [request, , promptAsync] = Google.useAuthRequest({
     webClientId: google.webClientId,
+    // Both platform hooks always run. expo-auth-session picks the client id for the current OS.
+    iosClientId: google.iosClientId,
+    androidClientId: google.androidClientId,
     redirectUri,
     responseType: ResponseType.Code,
     scopes: ['openid', 'profile', 'email'],

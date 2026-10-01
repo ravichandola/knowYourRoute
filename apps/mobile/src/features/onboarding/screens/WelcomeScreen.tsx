@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { routes } from '@/shared/navigation';
+import { Screen } from '@/shared/layout';
 import { Button } from '@/shared/ui';
 import { theme } from '@/shared/theme';
 import { Compass, Car, Zap, CheckCircle2 } from 'lucide-react-native';
@@ -9,8 +11,7 @@ export default function WelcomeOnboardingScreen() {
   const router = useRouter();
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
+    <Screen contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <View style={styles.iconCircle}>
             <Compass size={36} color={theme.colors.emerald[500]} />
@@ -59,19 +60,14 @@ export default function WelcomeOnboardingScreen() {
             title="Continue to Vehicle Setup"
             size="lg"
             variant="primary"
-            onPress={() => router.push('/(onboarding)/vehicle')}
+            onPress={() => router.push(routes.onboarding.vehicle)}
           />
         </View>
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   container: {
     padding: theme.spacing.xl,
     flexGrow: 1,

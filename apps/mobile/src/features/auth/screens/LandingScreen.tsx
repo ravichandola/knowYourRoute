@@ -3,6 +3,7 @@ import { Alert, View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/auth.store';
 import { useGoogleOAuthCallback } from '../hooks/useGoogleOAuthCallback';
+import { routeAfterAuth } from '../utils/route-after-auth';
 import WelcomeScreen from './WelcomeScreen';
 import { welcomeTheme } from '../theme/welcome.theme';
 
@@ -13,11 +14,7 @@ export default function LandingScreen() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (user?.isOnboarded) {
-        router.replace('/(tabs)/home');
-      } else {
-        router.replace('/(onboarding)/welcome');
-      }
+      routeAfterAuth(router, Boolean(user?.isOnboarded));
     }
   }, [isAuthenticated, user, router]);
 
