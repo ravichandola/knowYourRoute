@@ -1,0 +1,214 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  CNG
+  EV
+}
+
+enum VehicleDataSource {
+  OEM
+  PHOTO
+  USER_CONFIRMED
+}
+
+enum TripStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id              String           @id @default(uuid())
+  email           String           @unique
+  name            String
+  passwordHash    String?
+  phone           String?
+  avatarUrl       String?
+  isOnboarded     Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  vehicles        Vehicle[]
+  trips           Trip[]
+  tripPreferences TripPreference?
+  savedPlaces     SavedPlace[]
+  fastagAccounts  FastagConnection[]
+  notifications   Notification[]
+
+  @@map("users")
+}
+
+model Vehicle {
+  id                 String             @id @default(uuid())
+  userId             String
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  make               String
+  model              String
+  variant            String?
+  year               Int?
+  registrationNumber String             @unique
+  fuelType           FuelType
+  tankCapacity       Float?
+  odometer           Float?
+  fuelLevel          Float?
+  batteryLevel       Float?
+  rangeKm            Float?
+  estimatedEfficiency Float?
+  learnedEfficiency  Float?
+  dataSource         VehicleDataSource  @default(USER_CONFIRMED)
+  isPrimary          Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  snapshots          VehicleSnapshot[]
+  trips              Trip[]
+  fastagConnection   FastagConnection?
+
+  @@map("vehicles")
+}
+
+model VehicleSnapshot {
+  id                   String   @id @default(uuid())
+  vehicleId            String
+  vehicle              Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  photoUrl             String
+  detectedOdometer     Float?
+  detectedFuelLevel    Float?
+  detectedBatteryLevel Float?
+  confidenceScore      Float    @default(0.0)
+  processedAt          DateTime @default(now())
+
+  @@map("vehicle_snapshots")
+}
+
+model TripPreference {
+  id                       String   @id @default(uuid())
+  userId                   String   @unique
+  user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preferredStopsIntervalKm Float?   @default(150)
+  avoidTolls               Boolean  @default(false)
+  avoidHighways            Boolean  @default(false)
+  maxDrivingHoursPerDay    Int?     @default(8)
+  drivingStyle             String?  @default("BALANCED")
+
+  @@map("trip_preferences")
+}
+
+model Route {
+  id              String         @id @default(uuid())
+  searchHash      String
+  name            String
+  summary         String
+  geometryJson    Json
+  distanceKm      Float
+  durationMinutes Int
+  trafficJson     Json
+  tollJson        Json
+  energyJson      Json
+  safetyJson      Json
+  weatherJson     Json
+  usefulStopsJson Json
+  createdAt       DateTime       @default(now())
+
+  segments        RouteSegment[]
+  trips           Trip[]
+
+  @@map("routes")
+}
+
+model RouteSegment {
+  id              String   @id @default(uuid())
+  routeId         String
+  route           Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  segmentIndex    Int
+  startLat        Float
+  startLng        Float
+  endLat          Float
+  endLng          Float
+  distanceKm      Float
+  durationMinutes Int
+  roadName        String
+  trafficSeverity String
+  safetyScore     Float
+  weatherRisk     String
+
+  @@map("route_segments")
+}
+
+model Trip {
+  id                   String     @id @default(uuid())
+  userId               String
+  user                 User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleId            String
+  vehicle              Vehicle    @relation(fields: [vehicleId], references: [id])
+  routeId              String
+  route                Route      @relation(fields: [routeId], references: [id])
+  status               TripStatus @default(PLANNED)
+  originName           String
+  originLat            Float
+  originLng            Float
+  destinationName      String
+  destinationLat       Float
+  destinationLng       Float
+  totalDistanceKm      Float
+  totalDurationMinutes Int
+  costBreakdownJson    Json
+  startedAt            DateTime?
+  completedAt          DateTime?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  @@map("trips")
+}
+
+model SavedPlace {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  address   String?
+  latitude  Float
+  longitude Float
+  category  String?  @default("FAVORITE")
+  createdAt DateTime @default(now())
+
+  @@map("saved_places")
+}
+
+model FastagConnection {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleId   String   @unique
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  tagNumber   String   @unique
+  bankName    String
+  balance     Float    @default(0.0)
+  status      String   @default("ACTIVE")
+  lastUpdated DateTime @default(now())
+
+  @@map("fastag_connections")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}

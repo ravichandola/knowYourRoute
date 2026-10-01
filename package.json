@@ -1,0 +1,27 @@
+{
+  "name": "know-your-route-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Know Your Route - Cross-platform Route Intelligence, Vehicle Intelligence & Trip Safety Platform",
+  "packageManager": "pnpm@10.12.1",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:mobile": "turbo run dev --filter=@know-your-route/mobile",
+    "dev:api": "turbo run dev --filter=@know-your-route/api",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.4",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
