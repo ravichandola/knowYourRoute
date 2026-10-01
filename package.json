@@ -13,9 +13,13 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
+    "arch:rules": "depcruise apps/api/src apps/mobile/app apps/mobile/src packages/contracts/src packages/api-client/src --config .dependency-cruiser.cjs --ts-config tsconfig.arch.json",
+    "arch:docs": "pnpm --filter @know-your-route/contracts build && node scripts/architecture/generate.mjs",
+    "arch:check": "pnpm arch:rules && pnpm --filter @know-your-route/contracts build && node scripts/architecture/generate.mjs --check",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "devDependencies": {
+    "dependency-cruiser": "^17.4.3",
     "prettier": "^3.4.2",
     "turbo": "^2.3.4",
     "typescript": "^5.7.2"

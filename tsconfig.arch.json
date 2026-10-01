@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "jsx": "react-native",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["apps/mobile/src/*"]
+    }
+  },
+  "include": [
+    "apps/api/src/**/*.ts",
+    "apps/mobile/app/**/*.{ts,tsx}",
+    "apps/mobile/src/**/*.{ts,tsx}",
+    "packages/*/src/**/*.{ts,tsx}"
+  ],
+  "exclude": ["**/node_modules", "**/dist", "**/__tests__/**", "**/*.spec.ts", "**/*.test.ts"]
+}

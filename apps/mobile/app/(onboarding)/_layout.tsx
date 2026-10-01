@@ -1,6 +1,6 @@
 import React from 'react';
 import { Stack } from 'expo-router';
-import { theme } from '../../src/theme';
+import { theme } from '@/shared/theme';
 
 export default function OnboardingLayout() {
   return (

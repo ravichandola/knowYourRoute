@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { theme } from '../src/theme';
+import { theme } from '@/shared/theme';
 
 // Create a stable TanStack QueryClient instance
 const queryClient = new QueryClient({

@@ -7,6 +7,7 @@ module.exports = {
   },
   moduleNameMapper: {
     '^@nestjs/jwt$': '<rootDir>/test/mocks/nestjs-jwt.ts',
+    '^@know-your-route/contracts$': '<rootDir>/../../../packages/contracts/src/index.ts',
   },
   collectCoverageFrom: ['**/*.(t|j)s'],
   coverageDirectory: '../coverage',

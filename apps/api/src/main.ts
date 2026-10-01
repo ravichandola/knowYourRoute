@@ -1,9 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { HttpExceptionFilter, LoggingInterceptor } from './platform/http';
 
 async function bootstrap() {
   const logger = new Logger('KnowYourRouteAPI');
@@ -18,15 +17,6 @@ async function bootstrap() {
 
   // Global Prefix: /api/v1 (Section 10: API Versioning)
   app.setGlobalPrefix('api/v1');
-
-  // Global Validation Pipe
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: false,
-    })
-  );
 
   // Global Filter and Interceptor
   app.useGlobalFilters(new HttpExceptionFilter());

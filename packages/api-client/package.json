@@ -9,7 +9,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@know-your-route/types": "workspace:*"
+    "@know-your-route/contracts": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

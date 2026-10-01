@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
-import { authApi } from '../../../api/auth';
-import { useAuthStore } from '../../../stores/auth.store';
-import { LoginInput, SignupInput } from '@know-your-route/validation';
+import { api } from '@/shared/api';
+import { useAuthStore } from '../store/auth.store';
+import { LoginInput, SignupInput } from '@know-your-route/contracts';
 import { useRouter } from 'expo-router';
 
 export const useLogin = () => {
@@ -9,7 +9,7 @@ export const useLogin = () => {
   const setAuth = useAuthStore((s) => s.setAuth);
 
   return useMutation({
-    mutationFn: (input: LoginInput) => authApi.login(input),
+    mutationFn: (input: LoginInput) => api.auth.login({ body: input }),
     onSuccess: (data) => {
       setAuth(data.user, data.token);
       if (data.user.isOnboarded) {
@@ -26,7 +26,7 @@ export const useSignup = () => {
   const setAuth = useAuthStore((s) => s.setAuth);
 
   return useMutation({
-    mutationFn: (input: SignupInput) => authApi.signup(input),
+    mutationFn: (input: SignupInput) => api.auth.signup({ body: input }),
     onSuccess: (data) => {
       setAuth(data.user, data.token);
       router.replace('/(onboarding)/welcome');

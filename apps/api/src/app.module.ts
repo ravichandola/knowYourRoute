@@ -1,40 +1,26 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
-import { ProvidersModule } from './providers/providers.module';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { VehiclesModule } from './vehicles/vehicles.module';
-import { RoutesModule } from './routes/routes.module';
-import { TripsModule } from './trips/trips.module';
-import { EnergyModule } from './energy/energy.module';
-import { SafetyModule } from './safety/safety.module';
-import { FastagModule } from './fastag/fastag.module';
-import { AIModule } from './ai/ai.module';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { FastagModule } from './modules/fastag';
+import { IdentityModule } from './modules/identity';
+import { RoutePlanningModule } from './modules/route-planning';
+import { TripsModule } from './modules/trips';
+import { VehiclesModule } from './modules/vehicles';
 
+/**
+ * Composition root: the only file that knows every module exists.
+ * Module-to-module dependencies are declared in each module's own `*.module.ts`.
+ */
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.development', '.env'],
+      envFilePath: ['.env.development', '.env', '../../.env.development', '../../.env'],
     }),
-    ProvidersModule,
-    AIModule,
-    EnergyModule,
-    SafetyModule,
-    AuthModule,
-    UsersModule,
+    IdentityModule,
     VehiclesModule,
     FastagModule,
-    RoutesModule,
+    RoutePlanningModule,
     TripsModule,
-  ],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
   ],
 })
 export class AppModule {}

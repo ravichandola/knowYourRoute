@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { theme } from '../../src/theme';
+import { theme } from '@/shared/theme';
 import { Home, Compass, Car, User } from 'lucide-react-native';
 
 export default function TabLayout() {

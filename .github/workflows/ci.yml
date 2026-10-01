@@ -21,9 +21,7 @@ jobs:
           node-version: 20
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
+        uses: pnpm/action-setup@v4
 
       - name: Get pnpm store directory
         shell: bash
@@ -40,6 +38,11 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Architecture rules and generated maps
+        run: |
+          pnpm arch:check
+          git diff --exit-code -- docs/architecture/generated
 
       - name: Typecheck Monorepo
         run: pnpm typecheck
