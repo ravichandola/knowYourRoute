@@ -140,8 +140,9 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy(): Promise<void> {
     if (this.client) {
+      // Logged first: the async log transport can be cut off by process exit right after shutdown hooks.
+      this.logger.log('Closing Redis connection');
       await this.client.quit().catch(() => this.client?.disconnect());
-      this.logger.log('Redis connection closed');
     }
   }
 
