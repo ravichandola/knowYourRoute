@@ -1,5 +1,13 @@
+jest.mock('./oauth-token-verifier.service', () => ({
+  OAuthTokenVerifierService: class {
+    verifyGoogleIdToken = jest.fn();
+    verifyAppleIdentityToken = jest.fn();
+  },
+}));
+
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
+import { OAuthTokenVerifierService } from './oauth-token-verifier.service';
 import { AuthenticationError } from '../../../platform/errors';
 import { InMemoryUserRepository } from '../infrastructure/in-memory-user.repository';
 import { DEMO_EMAIL, DEMO_PASSWORD } from '../../../platform/demo/demo-data';
@@ -15,7 +23,10 @@ function serviceFor(issuer: string, audience: string) {
     signOptions: { issuer, audience, expiresIn: 60 },
     verifyOptions: { issuer: 'know-your-route', audience: 'know-your-route' },
   });
-  return { jwt, auth: new AuthService(new InMemoryUserRepository(), jwt, config) };
+  return {
+    jwt,
+    auth: new AuthService(new InMemoryUserRepository(), jwt, config, new OAuthTokenVerifierService(config)),
+  };
 }
 
 describe('JWT validation', () => {

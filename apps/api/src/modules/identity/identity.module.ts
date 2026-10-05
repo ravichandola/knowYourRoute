@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { DatabaseModule } from '../../platform/database/database.module';
 import { repositoryProviders } from '../../platform/persistence/repository-provider';
 import { AuthService } from './application/auth.service';
+import { OAuthTokenVerifierService } from './application/oauth-token-verifier.service';
 import { UsersService } from './application/users.service';
 import { PREFERENCE_REPOSITORY } from './domain/preference.repository';
 import { toExpirySeconds } from './domain/token-expiry';
@@ -41,6 +42,7 @@ import { PrismaUserRepository } from './infrastructure/prisma-user.repository';
   controllers: [AuthController, UsersController],
   providers: [
     AuthService,
+    OAuthTokenVerifierService,
     UsersService,
     ...repositoryProviders<UserRepository>(USER_REPOSITORY, {
       memory: InMemoryUserRepository,

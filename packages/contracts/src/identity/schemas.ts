@@ -13,6 +13,27 @@ export const signupSchema = z.object({
   phone: z.string().regex(/^[0-9+ -]{10,14}$/, 'Invalid phone number').optional(),
 });
 
+export const googleOAuthSchema = z.object({
+  idToken: z.string().min(1, 'Google ID token is required'),
+});
+
+/** Web authorization-code exchange (server uses client secret). */
+export const googleOAuthCodeSchema = z.object({
+  code: z.string().min(1, 'Google authorization code is required'),
+  redirectUri: z.string().url('Redirect URI must be a valid URL'),
+  codeVerifier: z.string().min(1).optional(),
+});
+
+export const appleOAuthSchema = z.object({
+  identityToken: z.string().min(1, 'Apple identity token is required'),
+  fullName: z
+    .object({
+      givenName: z.string().optional(),
+      familyName: z.string().optional(),
+    })
+    .optional(),
+});
+
 export const tripPreferenceSchema = z.object({
   preferredStopsIntervalKm: z.number().positive().max(500).optional(),
   avoidTolls: z.boolean().optional(),
@@ -23,4 +44,7 @@ export const tripPreferenceSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
+export type GoogleOAuthInput = z.infer<typeof googleOAuthSchema>;
+export type GoogleOAuthCodeInput = z.infer<typeof googleOAuthCodeSchema>;
+export type AppleOAuthInput = z.infer<typeof appleOAuthSchema>;
 export type TripPreferenceInput = z.infer<typeof tripPreferenceSchema>;

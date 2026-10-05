@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import type { User } from '@know-your-route/contracts';
 import { PrismaService } from '../../../platform/database/prisma.service';
-import type { NewUser, UserRecord, UserRepository } from '../domain/user.repository';
+import type {
+  NewUser,
+  OAuthLink,
+  OAuthProviderName,
+  UserRecord,
+  UserRepository,
+} from '../domain/user.repository';
 
 interface UserRow {
   id: string;
@@ -39,17 +45,65 @@ export class PrismaUserRepository implements UserRepository {
     return row ? toUser(row) : null;
   }
 
+  async findByOAuth(provider: OAuthProviderName, providerId: string): Promise<User | null> {
+    const account = await this.prisma.oAuthAccount.findUnique({
+      where: { provider_providerId: { provider, providerId } },
+      include: { user: true },
+    });
+    return account ? toUser(account.user) : null;
+  }
+
   async create(input: NewUser): Promise<User> {
     const row = await this.prisma.user.create({
       data: {
         email: input.email,
         name: input.name,
         phone: input.phone,
-        passwordHash: input.passwordHash,
+        passwordHash: input.passwordHash ?? null,
+        avatarUrl: input.avatarUrl,
         isOnboarded: false,
       },
     });
     return toUser(row);
+  }
+
+  async createOAuthUser(input: NewUser, oauth: OAuthLink): Promise<User> {
+    const row = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email: input.email,
+          name: input.name,
+          phone: input.phone,
+          passwordHash: input.passwordHash ?? null,
+          avatarUrl: input.avatarUrl,
+          isOnboarded: false,
+        },
+      });
+
+      await tx.oAuthAccount.create({
+        data: {
+          provider: oauth.provider,
+          providerId: oauth.providerId,
+          userId: user.id,
+        },
+      });
+
+      return user;
+    });
+
+    return toUser(row);
+  }
+
+  async linkOAuth(userId: string, oauth: OAuthLink): Promise<void> {
+    await this.prisma.oAuthAccount.upsert({
+      where: { provider_providerId: { provider: oauth.provider, providerId: oauth.providerId } },
+      update: { userId },
+      create: {
+        provider: oauth.provider,
+        providerId: oauth.providerId,
+        userId,
+      },
+    });
   }
 
   async markOnboarded(id: string): Promise<User | null> {

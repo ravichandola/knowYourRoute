@@ -2,11 +2,20 @@ import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
-import type { AuthResponse, LoginInput, SignupInput, User } from '@know-your-route/contracts';
+import type {
+  AppleOAuthInput,
+  AuthResponse,
+  GoogleOAuthCodeInput,
+  GoogleOAuthInput,
+  LoginInput,
+  SignupInput,
+  User,
+} from '@know-your-route/contracts';
 import { AuthenticationError, ConflictError } from '../../../platform/errors';
 import { DEMO_EMAIL } from '../../../platform/demo/demo-data';
 import { toExpirySeconds } from '../domain/token-expiry';
-import { USER_REPOSITORY, UserRepository } from '../domain/user.repository';
+import { OAuthLink, USER_REPOSITORY, UserRepository } from '../domain/user.repository';
+import { OAuthTokenVerifierService } from './oauth-token-verifier.service';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +23,7 @@ export class AuthService {
     @Inject(USER_REPOSITORY) private readonly users: UserRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly oauthVerifier: OAuthTokenVerifierService,
   ) {}
 
   async login(input: LoginInput): Promise<AuthResponse> {
@@ -46,6 +56,29 @@ export class AuthService {
     return this.issueToken(user);
   }
 
+  async loginWithGoogle(input: GoogleOAuthInput): Promise<AuthResponse> {
+    const profile = await this.oauthVerifier.verifyGoogleIdToken(input.idToken);
+    return this.loginWithOAuth('GOOGLE', profile);
+  }
+
+  async loginWithGoogleCode(input: GoogleOAuthCodeInput): Promise<AuthResponse> {
+    const profile = await this.oauthVerifier.exchangeGoogleAuthCode(
+      input.code,
+      input.redirectUri,
+      input.codeVerifier,
+    );
+    return this.loginWithOAuth('GOOGLE', profile);
+  }
+
+  async loginWithApple(input: AppleOAuthInput): Promise<AuthResponse> {
+    const profile = await this.oauthVerifier.verifyAppleIdentityToken(input.identityToken);
+    const appleName = this.formatAppleName(input.fullName);
+    if (appleName) {
+      profile.name = appleName;
+    }
+    return this.loginWithOAuth('APPLE', profile);
+  }
+
   async demoLogin(): Promise<AuthResponse> {
     const record = await this.users.findByEmail(DEMO_EMAIL);
     if (!record) {
@@ -68,13 +101,47 @@ export class AuthService {
       throw invalid;
     }
 
-    // Repository failures (e.g. database down) must surface as infrastructure errors, not as a
-    // rejected token: clients sign the user out on 401.
     const user = await this.users.findById(subject);
     if (!user) {
       throw invalid;
     }
     return user;
+  }
+
+  private async loginWithOAuth(
+    provider: OAuthLink['provider'],
+    profile: { providerId: string; email: string; name: string; avatarUrl?: string },
+  ): Promise<AuthResponse> {
+    const existingOAuth = await this.users.findByOAuth(provider, profile.providerId);
+    if (existingOAuth) {
+      return this.issueToken(existingOAuth);
+    }
+
+    const email = this.normalizeEmail(profile.email);
+    const existingEmail = await this.users.findByEmail(email);
+    if (existingEmail) {
+      await this.users.linkOAuth(existingEmail.user.id, { provider, providerId: profile.providerId });
+      return this.issueToken(existingEmail.user);
+    }
+
+    const user = await this.users.createOAuthUser(
+      {
+        email,
+        name: profile.name,
+        avatarUrl: profile.avatarUrl,
+        passwordHash: null,
+      },
+      { provider, providerId: profile.providerId },
+    );
+    return this.issueToken(user);
+  }
+
+  private formatAppleName(fullName?: AppleOAuthInput['fullName']): string | undefined {
+    if (!fullName) {
+      return undefined;
+    }
+    const parts = [fullName.givenName, fullName.familyName].filter(Boolean);
+    return parts.length > 0 ? parts.join(' ').trim() : undefined;
   }
 
   private issueToken(user: User): AuthResponse {
