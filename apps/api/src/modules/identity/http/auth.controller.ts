@@ -3,7 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import {
   authContract,
+  type AppleOAuthInput,
   type AuthResponse,
+  type GoogleOAuthCodeInput,
+  type GoogleOAuthInput,
   type LoginInput,
   type SignupInput,
 } from '@know-your-route/contracts';
@@ -39,5 +42,22 @@ export class AuthController {
       throw new NotFoundError('Demo login is not available');
     }
     return this.authService.demoLogin();
+  }
+
+  @Post(authContract.oauthGoogle.path)
+  oauthGoogle(@ContractBody(authContract.oauthGoogle) body: GoogleOAuthInput): Promise<AuthResponse> {
+    return this.authService.loginWithGoogle(body);
+  }
+
+  @Post(authContract.oauthGoogleCode.path)
+  oauthGoogleCode(
+    @ContractBody(authContract.oauthGoogleCode) body: GoogleOAuthCodeInput,
+  ): Promise<AuthResponse> {
+    return this.authService.loginWithGoogleCode(body);
+  }
+
+  @Post(authContract.oauthApple.path)
+  oauthApple(@ContractBody(authContract.oauthApple) body: AppleOAuthInput): Promise<AuthResponse> {
+    return this.authService.loginWithApple(body);
   }
 }

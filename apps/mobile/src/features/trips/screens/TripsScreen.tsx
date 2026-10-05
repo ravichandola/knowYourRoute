@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { routes, tripDetailHref } from '@/shared/navigation';
+import { Screen } from '@/shared/layout';
 import { Header, Card, Badge, EmptyState, Button } from '@/shared/ui';
 import { useUserTrips } from '../hooks/useTrip';
 import { theme } from '@/shared/theme';
@@ -11,15 +13,16 @@ export default function TripsScreen() {
   const { data: trips } = useUserTrips();
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header title="My Trips" subtitle="Past journeys & recorded logs" showBack={false} />
-      <ScrollView contentContainerStyle={styles.container}>
+    <Screen
+      header={<Header title="My Trips" subtitle="Past journeys & recorded logs" showBack={false} />}
+      contentContainerStyle={styles.container}
+    >
         {trips && trips.length > 0 ? (
           trips.map((trip) => (
             <Card
               key={trip.id}
               style={styles.tripCard}
-              onPress={() => router.push(`/trip/${trip.id}`)}
+              onPress={() => router.push(tripDetailHref(trip.id))}
             >
               <View style={styles.tripHeader}>
                 <View>
@@ -59,21 +62,16 @@ export default function TripsScreen() {
               <Button
                 title="Plan Your First Trip"
                 variant="primary"
-                onPress={() => router.push('/plan')}
+                onPress={() => router.push(routes.plan.index)}
               />
             }
           />
         )}
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   container: {
     padding: theme.spacing.lg,
     flexGrow: 1,

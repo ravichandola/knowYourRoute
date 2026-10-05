@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { planDetailHref } from '@/shared/navigation';
+import { Screen } from '@/shared/layout';
 import { Header, Button } from '@/shared/ui';
 import { MapViewAdapter } from '@/shared/map/MapViewAdapter';
 import { RouteCard } from '../components/RouteCard';
@@ -26,19 +28,19 @@ export default function RoutesComparisonScreen() {
 
   const handleInspectDetails = () => {
     if (!activeRoute) return;
-    router.push({
-      pathname: '/plan/route-detail',
-      params: { routeJson: JSON.stringify(activeRoute) },
-    });
+    router.push(planDetailHref(JSON.stringify(activeRoute)));
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header
-        title="Candidate Corridors"
-        subtitle={`${origin?.name || 'Origin'} ➔ ${destination?.name || 'Destination'}`}
-      />
-      <ScrollView contentContainerStyle={styles.container}>
+    <Screen
+      header={
+        <Header
+          title="Candidate Corridors"
+          subtitle={`${origin?.name || 'Origin'} ➔ ${destination?.name || 'Destination'}`}
+        />
+      }
+      contentContainerStyle={styles.container}
+    >
         {/* Isolated Map Overview */}
         <MapViewAdapter
           route={activeRoute}
@@ -72,16 +74,11 @@ export default function RoutesComparisonScreen() {
           onPress={handleInspectDetails}
           style={styles.actionBtn}
         />
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   container: {
     padding: theme.spacing.lg,
     paddingBottom: theme.spacing['4xl'],

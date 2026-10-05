@@ -12,21 +12,23 @@ interface ErrorStateProps {
 }
 
 export const ErrorState: React.FC<ErrorStateProps> = ({
-  title = 'Service Notice',
-  message = 'Unable to fetch real-time data. You can retry or continue with cached estimates.',
+  title = 'Something went wrong',
+  message = 'Unable to fetch data. Please try again.',
   onRetry,
   style,
 }) => {
   return (
     <View style={[styles.container, style]}>
-      <AlertCircle size={40} color={theme.colors.warning} />
+      <View style={styles.iconCircle}>
+        <AlertCircle size={28} color={theme.colors.warning} />
+      </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.message}>{message}</Text>
       {onRetry && (
         <Button
           title="Retry"
           size="sm"
-          variant="secondary"
+          variant="outline"
           onPress={onRetry}
           style={styles.retryButton}
         />
@@ -40,10 +42,19 @@ const styles = StyleSheet.create({
     padding: theme.spacing['2xl'],
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.white,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
     borderColor: theme.colors.surfaceBorder,
+    ...theme.shadows.sm,
+  },
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: theme.typography.fontSizes.base,

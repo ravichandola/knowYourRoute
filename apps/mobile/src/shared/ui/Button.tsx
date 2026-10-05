@@ -36,7 +36,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <TouchableOpacity
-      activeOpacity={0.8}
+      activeOpacity={0.85}
       onPress={isInteractive ? onPress : undefined}
       style={[
         styles.base,
@@ -49,7 +49,11 @@ export const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'outline' || variant === 'ghost' ? theme.colors.primary : theme.colors.white}
+          color={
+            variant === 'outline' || variant === 'ghost'
+              ? theme.colors.primary
+              : theme.colors.white
+          }
         />
       ) : (
         <>
@@ -82,23 +86,29 @@ const styles = StyleSheet.create({
   size_sm: {
     paddingVertical: theme.spacing.xs + 2,
     paddingHorizontal: theme.spacing.md,
+    minHeight: 36,
   },
   size_md: {
-    paddingVertical: theme.spacing.md,
+    paddingVertical: theme.spacing.sm + 2,
     paddingHorizontal: theme.spacing.xl,
+    minHeight: 48,
   },
   size_lg: {
-    paddingVertical: theme.spacing.lg - 2,
+    paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.xxl,
+    minHeight: 54,
   },
   primary: {
     backgroundColor: theme.colors.primary,
+    ...theme.shadows.sm,
   },
   secondary: {
-    backgroundColor: theme.colors.surfaceLight,
+    backgroundColor: theme.colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: theme.colors.surfaceBorder,
   },
   outline: {
-    backgroundColor: 'transparent',
+    backgroundColor: theme.colors.white,
     borderWidth: 1.5,
     borderColor: theme.colors.surfaceBorder,
   },
@@ -107,6 +117,7 @@ const styles = StyleSheet.create({
   },
   danger: {
     backgroundColor: theme.colors.danger,
+    ...theme.shadows.sm,
   },
   disabled: {
     opacity: 0.5,
@@ -134,7 +145,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
   },
   text_ghost: {
-    color: theme.colors.brand[400],
+    color: theme.colors.primary,
   },
   text_danger: {
     color: theme.colors.white,

@@ -1,4 +1,18 @@
 export const colors = {
+  // Know Your Route — forest green brand (mockup primary)
+  forest: {
+    50: '#E0F2F1',
+    100: '#B2DFDB',
+    200: '#80CBC4',
+    300: '#4DB6AC',
+    400: '#26A69A',
+    500: '#00897B',
+    600: '#00796B',
+    700: '#00695C',
+    800: '#004D40',
+    900: '#00352C',
+    950: '#002420',
+  },
   // Brand & Core
   brand: {
     50: '#EFF6FF',
@@ -14,8 +28,8 @@ export const colors = {
     950: '#172554',
   },
   emerald: {
-    500: '#10B981',
-    600: '#059669',
+    500: '#00897B',
+    600: '#00796B',
   },
   cyan: {
     500: '#06B6D4',

@@ -2,11 +2,18 @@ import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import type { User } from '@know-your-route/contracts';
 import { DEMO_EMAIL, DEMO_PASSWORD, DEMO_USER_ID } from '../../../platform/demo/demo-data';
-import type { NewUser, UserRecord, UserRepository } from '../domain/user.repository';
+import type {
+  NewUser,
+  OAuthLink,
+  OAuthProviderName,
+  UserRecord,
+  UserRepository,
+} from '../domain/user.repository';
 
 @Injectable()
 export class InMemoryUserRepository implements UserRepository {
   private readonly byEmail = new Map<string, UserRecord>();
+  private readonly oauthAccounts = new Map<string, string>();
 
   constructor() {
     const now = new Date().toISOString();
@@ -37,6 +44,11 @@ export class InMemoryUserRepository implements UserRepository {
     return null;
   }
 
+  async findByOAuth(provider: OAuthProviderName, providerId: string): Promise<User | null> {
+    const userId = this.oauthAccounts.get(this.oauthKey(provider, providerId));
+    return userId ? this.findById(userId) : null;
+  }
+
   async create(input: NewUser): Promise<User> {
     const now = new Date().toISOString();
     const user: User = {
@@ -44,12 +56,23 @@ export class InMemoryUserRepository implements UserRepository {
       email: input.email,
       name: input.name,
       phone: input.phone,
+      avatarUrl: input.avatarUrl,
       isOnboarded: false,
       createdAt: now,
       updatedAt: now,
     };
-    this.byEmail.set(input.email, { user, passwordHash: input.passwordHash });
+    this.byEmail.set(input.email, { user, passwordHash: input.passwordHash ?? null });
     return user;
+  }
+
+  async createOAuthUser(input: NewUser, oauth: OAuthLink): Promise<User> {
+    const user = await this.create(input);
+    this.oauthAccounts.set(this.oauthKey(oauth.provider, oauth.providerId), user.id);
+    return user;
+  }
+
+  async linkOAuth(userId: string, oauth: OAuthLink): Promise<void> {
+    this.oauthAccounts.set(this.oauthKey(oauth.provider, oauth.providerId), userId);
   }
 
   async markOnboarded(id: string): Promise<User | null> {
@@ -61,5 +84,9 @@ export class InMemoryUserRepository implements UserRepository {
       }
     }
     return null;
+  }
+
+  private oauthKey(provider: OAuthProviderName, providerId: string): string {
+    return `${provider}:${providerId}`;
   }
 }

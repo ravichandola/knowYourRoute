@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { routes } from '@/shared/navigation';
+import { Screen } from '@/shared/layout';
 import { Button, Card, Badge } from '@/shared/ui';
 import { MapViewAdapter } from '@/shared/map/MapViewAdapter';
 import { useActiveTripStore } from '../store/active-trip.store';
@@ -55,9 +57,9 @@ export default function LiveTripHUDScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* Top HUD Bar */}
-      <View style={styles.hudTopBar}>
+    <Screen
+      header={
+        <View style={styles.hudTopBar}>
         <View style={styles.liveIndicator}>
           <Radio size={16} color={theme.colors.emerald[500]} />
           <Text style={styles.liveText}>LIVE INTELLIGENCE</Text>
@@ -82,9 +84,10 @@ export default function LiveTripHUDScreen() {
             <X size={18} color={theme.colors.textPrimary} />
           </TouchableOpacity>
         </View>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.container}>
+        </View>
+      }
+      contentContainerStyle={styles.container}
+    >
         {/* Isolated Map View */}
         <MapViewAdapter
           route={selectedRoute}
@@ -142,19 +145,14 @@ export default function LiveTripHUDScreen() {
         <Button
           title="Exit Trip HUD"
           variant="outline"
-          onPress={() => router.replace('/(tabs)/home')}
+          onPress={() => router.replace(routes.tabs.home)}
           style={styles.exitBtn}
         />
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   hudTopBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',

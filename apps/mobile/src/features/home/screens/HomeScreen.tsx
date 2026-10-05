@@ -1,13 +1,8 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { routes } from '@/shared/navigation';
+import { Screen } from '@/shared/layout';
 import { useAuthStore } from '@/features/auth';
 import { useVehicleStore } from '@/features/vehicles';
 import { useVehicles } from '@/features/vehicles';
@@ -44,12 +39,11 @@ export default function HomeScreen() {
   ) => {
     setOrigin({ name: fromName, location: { latitude: fromLat, longitude: fromLng } });
     setDestination({ name: toName, location: { latitude: toLat, longitude: toLng } });
-    router.push('/plan');
+    router.push(routes.plan.index);
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
+    <Screen contentContainerStyle={styles.container}>
         {/* Header Bar */}
         <View style={styles.headerRow}>
           <View>
@@ -77,7 +71,7 @@ export default function HomeScreen() {
           <View style={styles.routeInputs}>
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => router.push('/plan')}
+              onPress={() => router.push(routes.plan.index)}
               style={styles.locationField}
             >
               <View style={[styles.dot, { backgroundColor: theme.colors.emerald[500] }]} />
@@ -90,7 +84,7 @@ export default function HomeScreen() {
 
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => router.push('/plan')}
+              onPress={() => router.push(routes.plan.index)}
               style={styles.locationField}
             >
               <View style={[styles.dot, { backgroundColor: theme.colors.danger }]} />
@@ -105,7 +99,7 @@ export default function HomeScreen() {
             size="md"
             variant="primary"
             icon={<Compass size={18} color={theme.colors.white} />}
-            onPress={() => router.push('/plan')}
+            onPress={() => router.push(routes.plan.index)}
             style={styles.discoverBtn}
           />
         </Card>
@@ -113,7 +107,7 @@ export default function HomeScreen() {
         {/* Active Vehicle Status */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Active Vehicle</Text>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/vehicle')}>
+          <TouchableOpacity onPress={() => router.push(routes.tabs.vehicle)}>
             <Text style={styles.seeAllText}>Manage</Text>
           </TouchableOpacity>
         </View>
@@ -121,10 +115,10 @@ export default function HomeScreen() {
         {currentVehicle ? (
           <VehicleCard
             vehicle={currentVehicle}
-            onPress={() => router.push('/(tabs)/vehicle')}
+            onPress={() => router.push(routes.tabs.vehicle)}
           />
         ) : (
-          <Card style={styles.addVehicleCard} onPress={() => router.push('/(onboarding)/vehicle')}>
+          <Card style={styles.addVehicleCard} onPress={() => router.push(routes.onboarding.vehicle)}>
             <Text style={styles.addVehicleTitle}>+ Register Vehicle</Text>
             <Text style={styles.addVehicleSub}>Add your car to unlock energy intelligence</Text>
           </Card>
@@ -206,16 +200,11 @@ export default function HomeScreen() {
             </View>
           </Card>
         </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   container: {
     padding: theme.spacing.lg,
     paddingBottom: theme.spacing['4xl'],

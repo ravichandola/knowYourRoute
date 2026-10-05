@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { theme } from '@/shared/theme';
 import { useAuthStore } from '@/features/auth';
+import { webMinHeight } from '@/shared/layout/platformStyles';
 
 import '@/app-shell/configure-api';
 
@@ -26,11 +28,14 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <StatusBar style="light" backgroundColor={theme.colors.background} />
+        <StatusBar style="dark" backgroundColor={theme.colors.background} />
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: theme.colors.background },
+            contentStyle: {
+              backgroundColor: theme.colors.background,
+              ...(Platform.OS === 'web' ? webMinHeight : {}),
+            },
             animation: 'slide_from_right',
           }}
         >

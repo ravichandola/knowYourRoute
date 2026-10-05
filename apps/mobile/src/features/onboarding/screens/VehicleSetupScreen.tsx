@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { routes } from '@/shared/navigation';
+import { Screen } from '@/shared/layout';
 import { Button, Input, Header } from '@/shared/ui';
 import { useRegisterVehicle } from '@/features/vehicles';
 import { theme } from '@/shared/theme';
@@ -35,16 +37,18 @@ export default function OnboardingVehicleScreen() {
       },
       {
         onSuccess: () => {
-          router.push('/(onboarding)/permissions');
+          router.push(routes.onboarding.permissions);
         },
       }
     );
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header title="Add Your Vehicle" subtitle="Step 2 of 3" />
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+    <Screen
+      header={<Header title="Add Your Vehicle" subtitle="Step 2 of 3" />}
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
         <Text style={styles.sectionTitle}>Vehicle Details</Text>
         <Text style={styles.sectionDesc}>
           Route intelligence calculates real-time energy usage and stop recommendations based on your vehicle.
@@ -115,16 +119,11 @@ export default function OnboardingVehicleScreen() {
             style={styles.submitBtn}
           />
         </View>
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   container: {
     padding: theme.spacing.xl,
     flexGrow: 1,

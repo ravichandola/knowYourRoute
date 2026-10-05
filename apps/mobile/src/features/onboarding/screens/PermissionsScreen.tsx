@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { routes } from '@/shared/navigation';
+import { Screen } from '@/shared/layout';
 import { Button, Header } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth';
 import { api } from '@/shared/api';
@@ -24,14 +26,15 @@ export default function PermissionsScreen() {
       updateUser({ isOnboarded: true });
     } finally {
       setLoading(false);
-      router.replace('/(tabs)/home');
+      router.replace(routes.tabs.home);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header title="Permissions" subtitle="Step 3 of 3" />
-      <ScrollView contentContainerStyle={styles.container}>
+    <Screen
+      header={<Header title="Permissions" subtitle="Step 3 of 3" />}
+      contentContainerStyle={styles.container}
+    >
         <View>
           <Text style={styles.title}>Enable Essential Services</Text>
           <Text style={styles.subtitle}>
@@ -89,16 +92,11 @@ export default function PermissionsScreen() {
             onPress={handleComplete}
           />
         </View>
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   container: {
     padding: theme.spacing.xl,
     flexGrow: 1,

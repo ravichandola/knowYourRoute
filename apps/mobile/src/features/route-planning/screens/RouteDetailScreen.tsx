@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { routes } from '@/shared/navigation';
+import { Screen } from '@/shared/layout';
 import { Header, Button, Card, Badge } from '@/shared/ui';
 import { SafetyCard } from '../components/SafetyCard';
 import { WeatherCard } from '../components/WeatherCard';
@@ -43,7 +45,7 @@ export default function RouteDetailScreen() {
       },
       {
         onSuccess: () => {
-          router.push('/trip/live');
+          router.push(routes.trip.live);
         },
       }
     );
@@ -51,19 +53,24 @@ export default function RouteDetailScreen() {
 
   if (!route) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <Header title="Route Details" />
+      <Screen header={<Header title="Route Details" />} scroll={false}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>No route selected</Text>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header title={route.name} subtitle={`${route.distanceKm} km • ${Math.round(route.durationMinutes / 60)}h ${route.durationMinutes % 60}m`} />
-      <ScrollView contentContainerStyle={styles.container}>
+    <Screen
+      header={
+        <Header
+          title={route.name}
+          subtitle={`${route.distanceKm} km • ${Math.round(route.durationMinutes / 60)}h ${route.durationMinutes % 60}m`}
+        />
+      }
+      contentContainerStyle={styles.container}
+    >
         {/* AI Trip Reasoning Card (Section 21 & 22) */}
         <Card style={styles.aiCard}>
           <View style={styles.aiHeader}>
@@ -151,16 +158,11 @@ export default function RouteDetailScreen() {
           onPress={handleStartTrip}
           style={styles.startBtn}
         />
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   container: {
     padding: theme.spacing.lg,
     paddingBottom: theme.spacing['4xl'],

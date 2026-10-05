@@ -1,7 +1,15 @@
 /// <reference types="jest" />
 
+jest.mock('./oauth-token-verifier.service', () => ({
+  OAuthTokenVerifierService: class {
+    verifyGoogleIdToken = jest.fn();
+    verifyAppleIdentityToken = jest.fn();
+  },
+}));
+
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
+import { OAuthTokenVerifierService } from './oauth-token-verifier.service';
 import { InMemoryUserRepository } from '../infrastructure/in-memory-user.repository';
 import { AuthenticationError, ConflictError } from '../../../platform/errors';
 import { DEMO_EMAIL, DEMO_PASSWORD, DEMO_USER_ID } from '../../../platform/demo/demo-data';
@@ -29,7 +37,12 @@ describe('AuthService', () => {
     const config = {
       get: (key: string) => (key === 'JWT_EXPIRES_IN' ? '7d' : 'test-secret'),
     } as ConfigService;
-    authService = new AuthService(new InMemoryUserRepository(), jwtService, config);
+    authService = new AuthService(
+      new InMemoryUserRepository(),
+      jwtService,
+      config,
+      new OAuthTokenVerifierService(config),
+    );
   });
 
   it('issues a verifiable JWT for demo login', async () => {

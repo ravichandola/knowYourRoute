@@ -27,6 +27,11 @@ enum TripStatus {
   CANCELLED
 }
 
+enum OAuthProvider {
+  GOOGLE
+  APPLE
+}
+
 model User {
   id              String           @id @default(uuid())
   email           String           @unique
@@ -44,8 +49,22 @@ model User {
   savedPlaces     SavedPlace[]
   fastagAccounts  FastagConnection[]
   notifications   Notification[]
+  oauthAccounts   OAuthAccount[]
 
   @@map("users")
+}
+
+model OAuthAccount {
+  id         String        @id @default(uuid())
+  provider   OAuthProvider
+  providerId String
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime      @default(now())
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@map("oauth_accounts")
 }
 
 model Vehicle {

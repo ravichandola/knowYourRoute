@@ -43,6 +43,11 @@ const envSchema = z
     AI_PROVIDER: z.string().default('mock'),
 
     GOOGLE_MAPS_API_KEY: z.string().optional(),
+    GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
+    GOOGLE_OAUTH_CLIENT_IDS: z.string().optional(),
+    GOOGLE_OAUTH_WEB_CLIENT_ID: z.string().optional(),
+    GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
+    APPLE_CLIENT_ID: z.string().optional(),
     OPENWEATHER_API_KEY: z.string().optional(),
     OPENAI_API_KEY: z.string().optional(),
     GEMINI_API_KEY: z.string().optional(),

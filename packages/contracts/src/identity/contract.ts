@@ -1,5 +1,12 @@
 import { createEndpointFactory } from '../http';
-import { loginSchema, signupSchema, tripPreferenceSchema } from './schemas';
+import {
+  appleOAuthSchema,
+  googleOAuthCodeSchema,
+  googleOAuthSchema,
+  loginSchema,
+  signupSchema,
+  tripPreferenceSchema,
+} from './schemas';
 import type { AuthResponse, TripPreference, User } from './types';
 
 const AUTH_BASE_PATH = 'auth';
@@ -12,6 +19,9 @@ export const authContract = {
   login: auth.post<AuthResponse>()('/login', { body: loginSchema }),
   signup: auth.post<AuthResponse>()('/signup', { body: signupSchema }),
   demoLogin: auth.post<AuthResponse>()('/demo-login'),
+  oauthGoogle: auth.post<AuthResponse>()('/oauth/google', { body: googleOAuthSchema }),
+  oauthGoogleCode: auth.post<AuthResponse>()('/oauth/google/code', { body: googleOAuthCodeSchema }),
+  oauthApple: auth.post<AuthResponse>()('/oauth/apple', { body: appleOAuthSchema }),
 } as const;
 
 export const usersContract = {

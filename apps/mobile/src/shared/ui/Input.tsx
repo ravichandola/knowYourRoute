@@ -38,7 +38,7 @@ export const Input: React.FC<InputProps> = ({
           style={[styles.input, style]}
           {...props}
         />
-        {rightIcon && <View style={styles.iconContainer}>{rightIcon}</View>}
+        {rightIcon && <View style={styles.iconContainerRight}>{rightIcon}</View>}
       </View>
       {error ? (
         <Text style={styles.errorText}>{error}</Text>
@@ -56,13 +56,13 @@ const styles = StyleSheet.create({
   label: {
     fontSize: theme.typography.fontSizes.sm,
     fontWeight: '600',
-    color: theme.colors.textSecondary,
+    color: theme.colors.textPrimary,
     marginBottom: theme.spacing.xs + 2,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.inputBackground,
     borderWidth: 1,
     borderColor: theme.colors.surfaceBorder,
     borderRadius: theme.radius.md,
@@ -78,7 +78,10 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSizes.base,
   },
   iconContainer: {
-    marginRight: theme.spacing.xs,
+    marginRight: theme.spacing.sm,
+  },
+  iconContainerRight: {
+    marginLeft: theme.spacing.sm,
   },
   errorText: {
     color: theme.colors.danger,

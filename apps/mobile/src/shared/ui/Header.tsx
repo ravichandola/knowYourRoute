@@ -31,7 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
             <ArrowLeft size={22} color={theme.colors.textPrimary} />
           </TouchableOpacity>
         )}
-        <View>
+        <View style={styles.titleBlock}>
           <Text style={styles.title}>{title}</Text>
           {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
         </View>
@@ -58,8 +58,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backButton: {
-    marginRight: theme.spacing.md,
-    padding: theme.spacing.xs,
+    marginRight: theme.spacing.sm,
+    width: 40,
+    height: 40,
+    borderRadius: theme.radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.surfaceMuted,
+  },
+  titleBlock: {
+    flex: 1,
   },
   title: {
     fontSize: theme.typography.fontSizes.lg,
@@ -69,7 +77,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: theme.typography.fontSizes.xs,
     color: theme.colors.textSecondary,
-    marginTop: 1,
+    marginTop: 2,
   },
   rightAction: {
     marginLeft: theme.spacing.md,

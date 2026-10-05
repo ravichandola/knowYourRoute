@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { routes } from '@/shared/navigation';
+import { Screen } from '@/shared/layout';
 import { Button, Input, Header } from '@/shared/ui';
 import { useSignup } from '../hooks/useAuth';
 import { theme } from '@/shared/theme';
@@ -33,9 +35,11 @@ export default function SignupScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header title="Create Account" subtitle="Join Know Your Route" />
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+    <Screen
+      header={<Header title="Create Account" subtitle="Join Know Your Route" />}
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
         <Text style={styles.heading}>Welcome to Route Intelligence</Text>
         <Text style={styles.subheading}>
           Set up your driver profile to connect your vehicles and receive trip guidance.
@@ -92,20 +96,15 @@ export default function SignupScreen() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+          <TouchableOpacity onPress={() => router.push(routes.auth.login)}>
             <Text style={styles.linkText}>Sign In</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   container: {
     padding: theme.spacing.xl,
     flexGrow: 1,
